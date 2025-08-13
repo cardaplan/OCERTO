@@ -196,7 +196,6 @@
         .nav-arrow {
             transition: opacity 0.3s ease, transform 0.2s ease;
         }
-        
         .nav-arrow:hover {
             transform: scale(1.05);
         }
@@ -393,7 +392,6 @@
         .bounce {
             animation: bounce 0.6s ease;
         }
-        
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% {
                 transform: translateY(0);
@@ -586,7 +584,6 @@
             color: var(--cor-texto-branco);
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
         @keyframes toastSlideIn {
             from {
                 opacity: 0;
@@ -770,7 +767,6 @@
             </div>
         </div>
     </section>
-
     <!-- Footer -->
     <footer class="py-8" style="background-color: var(--cor-fundo) !important; border-top: 5px solid transparent !important; background-image: linear-gradient(var(--cor-fundo), var(--cor-fundo)), linear-gradient(45deg, var(--cor-primaria), var(--cor-secundaria), var(--cor-terciaria), var(--cor-secundaria), var(--cor-primaria)) !important; background-origin: border-box !important; background-clip: padding-box, border-box !important; background-size: 100% 100%, 400% 400% !important; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important; position: relative; overflow: hidden;">
         <div class="max-w-4xl mx-auto px-4">
@@ -966,7 +962,6 @@
             </div>
         </div>
     </div>
-
     <!-- Edit Notes Modal -->
     <div id="edit-notes-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50" onclick="closeEditNotes(event)">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -1119,7 +1114,6 @@
                                 <span id="checkout-order-total" class="text-xl font-bold" style="color: var(--cor-primaria) !important;">R$ 0,00</span>
                             </div>
                         </div>
-                        
                         <!-- CAMPO DE CUPOM EXPANSÍVEL -->
                         <div class="border-t border-gray-200 pt-3">
                             
@@ -1313,7 +1307,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Estabelecimento Fechado -->
     <div id="closed-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[1100] hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -1512,7 +1505,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <!-- Footer -->
                     <div class="mt-6 pt-4 border-t text-center" style="border-color: var(--cor-primaria-clara);">
                         <p class="text-xs" style="color: var(--cor-texto-secundario) !important; opacity: 0.8;">💡 Pressione <strong>F1</strong> a qualquer momento para ver esta ajuda</p>
@@ -1672,14 +1664,7 @@
             try {
                 debugLog('Loading CSV from:', url);
                 
-                const response = await fetch(url);
-                debugLog('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvText = await response.text();
+                const csvText = await fetchCSVTextWithCache(url);
                 debugLog('CSV loaded:', csvText.length, 'chars');
                 
                 const parsedData = parseCSV(csvText);
@@ -1693,7 +1678,6 @@
                 throw error;
             }
         }
-
         // Function to process configuration data
         function processConfigData(configItems) {
             const config = {
@@ -2095,7 +2079,6 @@
                 errorLog('❌ Error setting up delivery options:', error);
             }
         }
-
         // Function to update footer with configuration data
         function updateFooterWithConfig() {
             const contactInfo = getContactInfo();
@@ -2296,7 +2279,6 @@
             // Verifica o segundo dígito
             return parseInt(cleanCPF.charAt(10)) === digit2;
         }
-        
         function detectPixKeyType(pixKey) {
             if (!pixKey || pixKey.trim() === '') return 'empty';
             
@@ -2448,7 +2430,6 @@
             
             document.body.removeChild(textArea);
         }
-
         function showPixInfo() {
             const checkoutConfig = getCheckoutConfig();
             const pixKey = checkoutConfig.step3_chave_pix;
@@ -2621,7 +2602,6 @@
 
             return processedData;
         }
-
         // Function to show preloader
         function showPreloader() {
             // Verificar se a variável PRELOADER_LOGO_URL existe e não está vazia
@@ -2821,7 +2801,6 @@
                 </style>
             `;
             document.body.insertAdjacentHTML('beforeend', preloaderHTML);
-            
             // Desabilitar scroll do body durante o preloader
             document.body.style.overflow = 'hidden';
             if (typeof debugLog === 'function') {
@@ -2895,6 +2874,76 @@
                 }
             };
             return fetch(cacheBustedUrl, fetchOptions);
+        }
+        
+        // 30-minute CSV cache with in-flight deduplication
+        const CSV_CACHE_TTL_MS = 30 * 60 * 1000;
+        const inFlightCsvRequests = new Map();
+        
+        function getCsvCacheKey(url) {
+            return `csv_cache:${url}`;
+        }
+        
+        async function fetchCSVTextWithCache(url, options = {}) {
+            const { ttlMs = CSV_CACHE_TTL_MS, force = false, timeoutMs = 8000 } = options;
+            const cacheKey = getCsvCacheKey(url);
+            const now = Date.now();
+        
+            // Try fresh cache first
+            try {
+                const raw = localStorage.getItem(cacheKey);
+                if (raw) {
+                    const cached = JSON.parse(raw);
+                    const isFresh = cached && typeof cached.timestamp === 'number' && (now - cached.timestamp) < ttlMs;
+                    if (isFresh && !force && typeof cached.data === 'string' && cached.data.length > 0) {
+                        return cached.data;
+                    }
+                }
+            } catch (_) { /* ignore cache errors */ }
+        
+            // Deduplicate in-flight requests
+            if (inFlightCsvRequests.has(url)) {
+                return await inFlightCsvRequests.get(url);
+            }
+        
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+        
+            const promise = fetch(url, { cache: 'no-cache', headers: { 'Cache-Control': 'no-cache' }, signal: controller.signal })
+                .then(async (resp) => {
+                    clearTimeout(id);
+                    if (!resp.ok) throw new Error(`HTTP error ${resp.status}`);
+                    const text = await resp.text();
+                    try {
+                        localStorage.setItem(cacheKey, JSON.stringify({ data: text, timestamp: Date.now() }));
+                    } catch (_) { /* ignore storage quota errors */ }
+                    return text;
+                })
+                .catch(async (err) => {
+                    clearTimeout(id);
+                    // Fallback to stale cache when available
+                    try {
+                        const raw = localStorage.getItem(cacheKey);
+                        if (raw) {
+                            const cached = JSON.parse(raw);
+                            if (cached && typeof cached.data === 'string' && cached.data.length > 0) {
+                                if (typeof warnLog === 'function') {
+                                    warnLog('Usando cache antigo para', url, 'devido a erro:', err?.message || err);
+                                } else {
+                                    console.warn('Usando cache antigo para', url, 'devido a erro:', err?.message || err);
+                                }
+                                return cached.data;
+                            }
+                        }
+                    } catch (_) { /* ignore */ }
+                    throw err;
+                })
+                .finally(() => {
+                    inFlightCsvRequests.delete(url);
+                });
+        
+            inFlightCsvRequests.set(url, promise);
+            return await promise;
         }
         
         // Função para limpar localStorage e recarregar página
@@ -3169,7 +3218,6 @@
             changeAmount: '',
             notes: ''
         };
-
         // Parse variations from classificacaoAdicional
         function parseVariations(classificacaoAdicional) {
             if (!classificacaoAdicional) return null;
@@ -3324,9 +3372,6 @@
                 text: classificacaoAdicional.trim()
             };
         }
-
-
-
         // Process image URL to handle different sources
         function processImageUrl(url) {
             if (!url || url.trim() === '') {
@@ -3516,7 +3561,6 @@
             // Atualizar setas inicialmente
             setTimeout(updateNavigationArrows, 100);
         }
-        
         // Setup click listeners for category buttons
         function setupCategoryClickListeners() {
             const categoryButtons = document.querySelectorAll('.category-item');
@@ -3708,7 +3752,6 @@
                             </div>
                         `;
                     }).join('');
-                    
                 } else if (variations.type === 'variation') {
                     // Formato legado - variação única
                     const inputType = variations.required ? 'radio' : 'checkbox';
@@ -3909,7 +3952,6 @@
             updateModalPricing();
             updateAddToCartButton();
         }
-
         // Handle multiple variation change (novo formato)
         function handleMultipleVariationChange(variationIndex, optionIndex, name, price, type, isRequired, isRemoval) {
             debugLog('🎯 handleMultipleVariationChange chamada:', { 
@@ -4259,7 +4301,6 @@
             } else if (priceType === 'consultation') {
                 basePrice = 0; // Preço de consulta não tem valor numérico
             }
-            
             const totalPrice = basePrice + variationPrice;
             
             // Create variation key for grouping similar items (include notes in key if present)
@@ -4448,7 +4489,6 @@
             cartFab.classList.add('bounce');
             setTimeout(() => cartFab.classList.remove('bounce'), 600);
         }
-
         // Open cart
         async function openCart() {
             // VERIFICAR SE ESTABELECIMENTO ESTÁ ABERTO
@@ -4640,7 +4680,6 @@
             
             debugLog('✅ Carrinho limpo com sucesso');
         }
-
         // Reset Step 2 - Limpa completamente o estado do step 2
         function resetStep2() {
             debugLog('=== RESET STEP 2 ===');
@@ -4840,7 +4879,6 @@
                 document.getElementById('cart-fab').style.display = 'flex';
             }
         }
-        
         // Back to cart from checkout
         function backToCart() {
             // Fechar checkout
@@ -5011,7 +5049,6 @@
                 errorLog('syncDeliveryFeeBeforeStep3 error:', e);
             }
         }
-        
         // Enhanced Step 2 validation - validates all required fields
         function validateStep2Enhanced() {
             const deliveryType = document.querySelector('input[name="delivery-type"]:checked')?.value;
@@ -5202,9 +5239,6 @@
         function prevStep(step) {
             showStep(step);
         }
-
-
-
         // Update cart quantity
         function updateCartQuantity(itemKey, delta) {
             const item = cart.find(item => item.itemKey === itemKey);
@@ -5548,7 +5582,6 @@
                     break;
             }
         }
-
         // Handle CEP input - fetch address when 8 digits are entered
         function handleCepInput() {
             const cepEl = document.getElementById('cep');
@@ -5741,7 +5774,6 @@
                     debugLog(`Endereço encontrado via ${api.name}:`, orderData.address);
                     updateContinueButton();
                     return; // Success, exit function
-                    
                 } catch (error) {
                     errorLog(`Erro na API ${api.name}:`, error);
                     lastError = error;
@@ -5908,7 +5940,6 @@
                 }
             });
         }
-
         // Show "Outras opções" button
         function showOtherOptionsButton() {
             const deliveryOptions = document.getElementById('delivery-options');
@@ -6096,7 +6127,6 @@
                 if (clearBtn) clearBtn.style.display = 'none';
             });
         }
-
         // Show field error with enhanced visual feedback
         function showFieldError(fieldId, message) {
             const field = document.getElementById(fieldId);
@@ -6279,7 +6309,6 @@
                 return item.preco === 0 || item.preco === null || item.preco === undefined || isNaN(item.preco);
             });
         }
-        
         // Atualizar resumo do pedido - NOVA VERSÃO LIMPA
         function updateOrderSummary(cartTotal, deliveryFee) {
             // Elementos do novo layout
@@ -6480,7 +6509,6 @@
         function getConfiguredTimezone() {
             return globalTimezone;
         }
-        
         // Função para teste manual do timezone (use no console)
         window.testTimezone = function(timezone) {
             debugLog('🧪 TESTE MANUAL DE TIMEZONE:');
@@ -6590,8 +6618,7 @@
         function checkIfOpenAtTime(dayOfWeek, timeInMinutes) {
             return new Promise(async (resolve) => {
                 try {
-                    const response = await fetch(HOURS_CSV_URL);
-                    const csvText = await response.text();
+                    const csvText = await fetchCSVTextWithCache(HOURS_CSV_URL);
                     const lines = csvText.trim().split('\n');
                     
                     // Procurar pelo dia da semana (começando da linha 1, pois linha 0 é cabeçalho)
@@ -6642,14 +6669,12 @@
             const [hours, minutes] = timeString.split(':').map(Number);
             return hours * 60 + minutes;
         }
-        
         /**
          * Encontra o próximo horário de abertura
          */
         async function getNextOpenTime() {
             try {
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                const csvText = await fetchCSVTextWithCache(HOURS_CSV_URL);
                 const lines = csvText.trim().split('\n');
                 const currentTime = getCurrentDateInTimezone();
                 const currentDay = currentTime.getDay();
@@ -6811,7 +6836,6 @@
                 return null;
             }
         }
-        
         // Calcular desconto do cupom
         function calculateCouponDiscount(coupon) {
             const cartTotal = calculateCartTotal();
@@ -6984,7 +7008,6 @@
             
             debugLog('🎟️ Input limpo e cupom resetado completamente');
         }
-        
         // Limpar cupom
         function clearCoupon() {
             appliedCoupon = null;
@@ -7164,7 +7187,6 @@
                 debugLog('💰 Switcher de troco DESATIVADO - campo de valor oculto e resetado');
             }
         }
-        
         /**
          * Configura o campo de troco com validação
          */
@@ -7353,7 +7375,6 @@
             
             debugLog('✅ Atalhos configurados: F1 (Ajuda), Escape (Fechar)');
         }
-        
         /**
          * Abre o Gerador de Variações (Shift + V)
          */
@@ -7552,7 +7573,6 @@
                 
                 // Desabilitar botão continuar
                 updateContinueButtonState(false, neighborhood);
-                
             } else {
                 // Taxa não encontrada mas bairro válido (ou modo desativado) - mostrar alerta original
                 if (originalAlert) {
@@ -7724,7 +7744,6 @@
                 updateCheckoutOrderTotal();
             }
         }
-
         /**
          * Processa a taxa de delivery após validação do CEP
          * @param {object} addressData - Dados do endereço
@@ -7919,7 +7938,6 @@
             // Atualizar total do checkout (sem taxa)
             updateCheckoutOrderTotal();
         }
-
         // ====================================================================
         // SISTEMA REDUNDANTE DE BUSCA DE TAXA POR BAIRRO - V1.0
         // ====================================================================
@@ -8116,7 +8134,6 @@
             
             debugLog('🔄 Spinner ativado no campo de bairro (timeout: 5s)');
         }
-        
         /**
          * Remove spinner do campo de bairro
          */
@@ -8287,7 +8304,6 @@
             // Limpar campo de erro se existir
             clearFieldError('neighborhood');
         }
-        
         /**
          * Executa a busca real do bairro na planilha
          */
@@ -8469,7 +8485,6 @@
                 }, 1000);
             }
         }
-        
         /**
          * Função para exibir alerta quando taxa não é encontrada
          */
@@ -8634,7 +8649,6 @@
 
         // Variável para controlar timeout de busca por bairro
         let neighborhoodSearchTimeout = null;
-
         /**
          * Alterna entre modo CEP e modo endereço manual
          */
@@ -8803,7 +8817,6 @@
                 updateContinueButtonState(isValid, neighborhood);
             }, 800);
         }
-
         /**
          * Executa a busca real por bairro
          */
@@ -8956,7 +8969,6 @@
         function showCustomAlert(message, type = 'error') {
             showToast(message, type);
         }
-
         // Format WhatsApp number with country-specific mask
         /**
          * Formata número de telefone para exibição
@@ -9148,7 +9160,6 @@
             phoneInput.placeholder = format;
             phoneInput.value = ''; // Clear current value when country changes
         }
-        
         // Detect country by IP and set default country code
         async function detectCountryByIP() {
             // Lista de APIs que tentaremos, em ordem de prioridade
@@ -9321,7 +9332,6 @@
                     hasErrors = true;
                 }
             }
-            
             // Validate payment method only if payment methods are enabled AND not "Consumo no Local"
             const checkoutConfig = getCheckoutConfig();
             if (checkoutConfig.step3_show_formas_pag === 'Sim' && orderData.deliveryType !== 'local') {
@@ -9477,7 +9487,6 @@
             const currency = getCurrentCurrency();
             return currencyConfig[currency] || currencyConfig['BRL'];
         }
-
         /**
          * Função para escurecer uma cor em 30%
          * @param {string} cor - Cor em formato hexadecimal, RGB ou variável CSS
@@ -9660,7 +9669,6 @@
                 return 0;
             }
         }
-        
         // Detectar tipo de preço
         function getPriceType(priceField) {
             // Converter para string e validar
@@ -9822,7 +9830,6 @@
                 return '<span style="color: var(--cor-secundaria); font-weight: bold;">💬 Consulte</span>';
             }
         }
-
         // Send to WhatsApp or Webhook
         function sendToWhatsApp() {
             if (cart.length === 0) return;
@@ -10022,7 +10029,6 @@
                 const itemPrice = parseFloat(item.preco);
                 return isNaN(itemPrice) || itemPrice <= 0;
             });
-            
             const hasPricedItems = cart.some(item => {
                 const itemPrice = parseFloat(item.preco);
                 return !isNaN(itemPrice) && itemPrice > 0;
@@ -10223,7 +10229,6 @@
                     couponDiscount = calculateCouponDiscount(coupon) || 0;
                 } catch (_) { /* noop */ }
             }
-            
             // Calculate totals
             let subtotal = cart.reduce((sum, item) => {
                 const price = (typeof parsePrice === 'function') ? parsePrice(item.preco) : parseFloat(String(item.preco).replace(/[^0-9.,]/g, '').replace(',', '.'));
@@ -10419,7 +10424,6 @@
             debugLog('cart após reset:', cart);
             debugLog('currentDeliveryFee após reset:', currentDeliveryFee);
         }
-        
         // Send via Webhook
         function sendViaWebhook(message, webhookUrl) {
             debugLog('=== DEBUG WEBHOOK ===');
@@ -10598,7 +10602,6 @@
                 }
             });
             debugLog('================================');
-            
             // Show loading message
             showCustomAlert('Enviando pedido...', 'info');
             
@@ -10794,7 +10797,6 @@
                 retryScroll();
             }, 100); // Initial delay to ensure DOM rendering
         }
-
         // SCROLL SPY DEFINITIVO - Técnica tradicional e confiável
         let scrollSpyEnabled = true;
         let scrollSpyTimeout = null;
@@ -10982,7 +10984,6 @@
             
             if (typeof debugLog === 'function') debugLog('✅ Search functionality initialized');
         }
-        
         // Perform search
         function performSearch() {
             const searchInput = document.getElementById('search');
@@ -11184,7 +11185,6 @@
                 }, 500);
             });
         }
-
         // Share specific category
         function shareCategory(category) {
             // Get category display name from dynamic data
@@ -11328,8 +11328,7 @@
         async function updateOperatingHours() {
             try {
                 // Fetch CSV data directly for real-time updates
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                const csvText = await fetchCSVTextWithCache(HOURS_CSV_URL);
                 
                 // Parse CSV manually
                 const lines = csvText.trim().split('\n');
@@ -11374,7 +11373,6 @@
                     errorLog('❌ Nenhum cronograma encontrado para hoje:', dayOfWeek);
                     return;
                 }
-                
                 debugLog('🔍 Verificando se está aberto...');
                 const isOpen = checkIfOpenFromPeriods(todaySchedule, currentTime);
                 const nextCloseTime = getNextCloseTimeFromPeriods(todaySchedule, currentTime);
@@ -11570,7 +11568,6 @@
             }
             return null;
         }
-        
         function getNextCloseTimeFromPeriods(schedule, currentTime) {
             // Get time periods from CSV format
             const periods = [schedule.period1, schedule.period2, schedule.period3];
@@ -11644,9 +11641,8 @@
             document.body.style.overflow = 'hidden';
             
             try {
-                // Fetch CSV data directly
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                // Fetch CSV data diretamente
+                const csvText = await fetchCSVTextWithCache(HOURS_CSV_URL);
                 
                 debugLog('CSV loaded successfully:', csvText.substring(0, 200));
                 
@@ -11770,7 +11766,6 @@
                     
                     html += `</div></div>`;
                 }
-                
                 debugLog('✅ Processamento concluído. Total de dias processados:', (html.match(/<h3 class="font-semibold/g) || []).length);
                 
                 content.innerHTML = html;
@@ -11926,7 +11921,6 @@
 
         // Update hours every minute
         setInterval(updateOperatingHours, 60000);
-
         // ===== FUNÇÕES RELÓGIO TIMEZONE =====
         
         let timezoneClockInterval = null;
@@ -12112,7 +12106,6 @@
                 
                 debugLog('✅ QR Code gerado e pronto para download!');
                 debugLog('🔗 URL da API:', qrApiUrl);
-                
             } catch (error) {
                 errorLog('❌ Erro ao gerar QR Code:', error);
                 
@@ -12308,7 +12301,6 @@
             }
             return null;
         }
-
         function preencheMesaAutomatica() {
             const mesaURL = getMesaFromURL();
             const campoMesa = document.getElementById('table-number');
@@ -12509,7 +12501,6 @@
         .notification-close:hover {
             background-color: rgba(255, 255, 255, 0.2);
         }
-
         /* Responsividade para mobile */
         @media (max-width: 640px) {
             .notification {
@@ -12903,7 +12894,6 @@
         storageLog('🛍 Nenhum item no carrinho para restaurar');
         return false;
     };
-    
     /**
      * Limpar carrinho do localStorage
      */
@@ -12914,196 +12904,6 @@
         }
         return success;
     };
-    
-    // ===== FUNÇÕES ESPECÍFICAS DE CUPONS =====
-    
-    /**
-     * Salvar cupom no localStorage
-     */
-    window.saveCouponToStorage = function() {
-        if (typeof appliedCoupon !== 'undefined' && typeof couponDiscount !== 'undefined') {
-            const couponData = {
-                appliedCoupon: appliedCoupon,
-                couponDiscount: couponDiscount
-            };
-            const success = saveToStorage(STORAGE_CONFIG.KEYS.COUPON, couponData);
-            if (success && appliedCoupon) {
-                storageLog(`🎟️ Cupom salvo: ${appliedCoupon.codigo} (${couponDiscount})`);
-            }
-            return success;
-        }
-        return false;
-    };
-    
-    /**
-     * Carregar cupom do localStorage
-     */
-    window.loadCouponFromStorage = function() {
-        const couponData = loadFromStorage(STORAGE_CONFIG.KEYS.COUPON);
-        if (couponData && couponData.appliedCoupon) {
-            if (typeof appliedCoupon !== 'undefined' && typeof couponDiscount !== 'undefined') {
-                appliedCoupon = couponData.appliedCoupon;
-                couponDiscount = couponData.couponDiscount || 0;
-                storageLog(`🎟️ Cupom restaurado: ${appliedCoupon.codigo} (${couponDiscount})`);
-                return true;
-            }
-        }
-        return false;
-    };
-    
-    /**
-     * Limpar cupom do localStorage
-     */
-    window.clearCouponFromStorage = function() {
-        const success = removeFromStorage(STORAGE_CONFIG.KEYS.COUPON);
-        if (success) {
-            storageLog('🎟️ Cupom limpo do localStorage');
-        }
-        return success;
-    };
-    
-    // ===== FUNÇÕES ESPECÍFICAS DE DADOS DO PEDIDO =====
-    
-    /**
-     * Salvar dados do pedido no localStorage
-     */
-    window.saveOrderDataToStorage = function() {
-        if (typeof orderData !== 'undefined' && orderData) {
-            const success = saveToStorage(STORAGE_CONFIG.KEYS.ORDER_DATA, orderData);
-            if (success) {
-                storageLog('📝 Dados do pedido salvos', orderData);
-            }
-            return success;
-        }
-        return false;
-    };
-    
-    /**
-     * Carregar dados do pedido do localStorage
-     */
-    window.loadOrderDataFromStorage = function() {
-        const savedOrderData = loadFromStorage(STORAGE_CONFIG.KEYS.ORDER_DATA);
-        if (savedOrderData && typeof orderData !== 'undefined') {
-            // Mesclar dados salvos com dados atuais
-            Object.assign(orderData, savedOrderData);
-            
-            // Preencher campos do formulário
-            fillFormFields(savedOrderData);
-            
-            storageLog('📝 Dados do pedido restaurados', savedOrderData);
-            return true;
-        }
-        return false;
-    };
-    
-    /**
-     * Preencher campos do formulário com dados salvos
-     */
-    function fillFormFields(data) {
-        try {
-            if (data.customerName) {
-                const nameField = document.getElementById('customer-name');
-                if (nameField) nameField.value = data.customerName;
-            }
-            
-            if (data.whatsapp) {
-                const whatsappField = document.getElementById('customer-whatsapp');
-                if (whatsappField) whatsappField.value = data.whatsapp;
-            }
-            
-            if (data.paymentMethod) {
-                const paymentField = document.getElementById('payment-method');
-                if (paymentField) paymentField.value = data.paymentMethod;
-            }
-            
-            if (data.changeAmount) {
-                const changeField = document.getElementById('change-amount');
-                if (changeField) changeField.value = data.changeAmount;
-            }
-            
-            if (data.notes) {
-                const notesField = document.getElementById('order-notes');
-                if (notesField) notesField.value = data.notes;
-            }
-            
-            if (data.deliveryType) {
-                const deliveryRadio = document.querySelector(`input[name="delivery-type"][value="${data.deliveryType}"]`);
-                if (deliveryRadio) deliveryRadio.checked = true;
-            }
-            
-            storageLog('📝 Campos do formulário preenchidos');
-        } catch (e) {
-            storageError('Erro ao preencher campos do formulário:', e);
-        }
-    }
-    
-    /**
-     * Limpar dados do pedido do localStorage
-     */
-    window.clearOrderDataFromStorage = function() {
-        const success = removeFromStorage(STORAGE_CONFIG.KEYS.ORDER_DATA);
-        if (success) {
-            storageLog('📝 Dados do pedido limpos do localStorage');
-        }
-        return success;
-    };
-    
-    // ===== FUNÇÕES ESPECÍFICAS DE TAXA DE DELIVERY =====
-    
-    /**
-     * Salvar taxa de delivery no localStorage
-     */
-    window.saveDeliveryFeeToStorage = function() {
-        if (typeof currentDeliveryFee !== 'undefined') {
-            const success = saveToStorage(STORAGE_CONFIG.KEYS.DELIVERY_FEE, currentDeliveryFee);
-            if (success) {
-                storageLog(`🚚 Taxa de delivery salva: ${currentDeliveryFee}`);
-            }
-            return success;
-        }
-        return false;
-    };
-    
-    /**
-     * Carregar taxa de delivery do localStorage
-     */
-    window.loadDeliveryFeeFromStorage = function() {
-        const savedFee = loadFromStorage(STORAGE_CONFIG.KEYS.DELIVERY_FEE);
-        if (savedFee !== null && typeof currentDeliveryFee !== 'undefined') {
-            currentDeliveryFee = savedFee;
-            storageLog(`🚚 Taxa de delivery restaurada: ${savedFee}`);
-            return true;
-        }
-        return false;
-    };
-    
-    /**
-     * Limpar taxa de delivery do localStorage
-     */
-    window.clearDeliveryFeeFromStorage = function() {
-        const success = removeFromStorage(STORAGE_CONFIG.KEYS.DELIVERY_FEE);
-        if (success) {
-            storageLog('🚚 Taxa de delivery limpa do localStorage');
-        }
-        return success;
-    };
-    
-    // ===== FUNÇÕES DE CACHE CSV (OPCIONAL) =====
-    
-    /**
-     * Salvar cache de CSV no localStorage
-     */
-    window.saveCsvCacheToStorage = function(csvData) {
-        if (csvData) {
-            const success = saveToStorage(STORAGE_CONFIG.KEYS.CSV_CACHE, csvData);
-            if (success) {
-                storageLog('📊 Cache CSV salvo');
-            }
-            return success;
-        }
-        return false;
-    };
-    
     /**
      * Carregar cache de CSV do localStorage
      */
@@ -13256,7 +13056,6 @@
      definidas no arquivo config.js
      ==================================================================== -->
 <div id="gtranslate_wrapper"></div>
-
 <script>
 debugLog('🔍 === DEBUG SISTEMA DE TRADUÇÃO ===');
 debugLog('TRADUCAO definida?', typeof TRADUCAO !== 'undefined');
