@@ -1672,14 +1672,7 @@
             try {
                 debugLog('Loading CSV from:', url);
                 
-                const response = await fetch(url);
-                debugLog('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvText = await response.text();
+                const csvText = await loadCSVTextWithCache(url, CSV_CACHE_TTL_MS);
                 debugLog('CSV loaded:', csvText.length, 'chars');
                 
                 const parsedData = parseCSV(csvText);
@@ -1688,7 +1681,7 @@
                 return parsedData;
             } catch (error) {
                 errorLog('Error loading CSV data from', url, ':', error);
-
+                
                 
                 throw error;
             }
@@ -2895,6 +2888,81 @@
                 }
             };
             return fetch(cacheBustedUrl, fetchOptions);
+        }
+        
+        // CSV caching utilities (30-minute TTL; stale-if-error)
+        const CSV_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+        const CSV_CACHE_PREFIX = 'csv_cache_v1::';
+        const inFlightCSVRequests = new Map();
+        
+        function getCSVCacheKey(url) {
+            return `${CSV_CACHE_PREFIX}${url}`;
+        }
+        
+        function readCSVCache(url) {
+            try {
+                const raw = localStorage.getItem(getCSVCacheKey(url));
+                if (!raw) return null;
+                const obj = JSON.parse(raw);
+                if (!obj || typeof obj.timestamp !== 'number' || typeof obj.text !== 'string') return null;
+                return obj;
+            } catch (_) {
+                return null;
+            }
+        }
+        
+        function writeCSVCache(url, text) {
+            try {
+                const payload = { timestamp: Date.now(), text };
+                localStorage.setItem(getCSVCacheKey(url), JSON.stringify(payload));
+            } catch (e) {
+                try { localStorage.removeItem(getCSVCacheKey(url)); } catch (_) { /* noop */ }
+            }
+        }
+        
+        async function fetchCSVNetwork(url, fetchOptions = {}) {
+            const response = await fetch(url, { cache: 'no-cache', ...fetchOptions });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.text();
+        }
+        
+        async function loadCSVTextWithCache(url, ttlMs = CSV_CACHE_TTL_MS, options = {}) {
+            const { forceRefresh = false, fetchOptions = {} } = options || {};
+            const cached = readCSVCache(url);
+            const isFresh = cached && (Date.now() - cached.timestamp) < ttlMs;
+            
+            if (isFresh && !forceRefresh) {
+                debugLog('🗃️ Using cached CSV:', url);
+                return cached.text;
+            }
+            
+            if (inFlightCSVRequests.has(url)) {
+                debugLog('⏳ Awaiting in-flight CSV request:', url);
+                try {
+                    return await inFlightCSVRequests.get(url);
+                } catch (e) {
+                    if (cached) return cached.text; // stale-if-error
+                    throw e;
+                }
+            }
+            
+            const fetchPromise = (async () => {
+                try {
+                    debugLog('🌐 Fetching CSV (network):', url);
+                    const text = await fetchCSVNetwork(url, fetchOptions);
+                    writeCSVCache(url, text);
+                    return text;
+                } catch (e) {
+                    warnLog('⚠️ Network fetch failed, using cached CSV if available:', url, e);
+                    if (cached) return cached.text; // stale-if-error
+                    throw e;
+                } finally {
+                    inFlightCSVRequests.delete(url);
+                }
+            })();
+            
+            inFlightCSVRequests.set(url, fetchPromise);
+            return await fetchPromise;
         }
         
         // Função para limpar localStorage e recarregar página
@@ -6590,8 +6658,7 @@
         function checkIfOpenAtTime(dayOfWeek, timeInMinutes) {
             return new Promise(async (resolve) => {
                 try {
-                    const response = await fetch(HOURS_CSV_URL);
-                    const csvText = await response.text();
+                    const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                     const lines = csvText.trim().split('\n');
                     
                     // Procurar pelo dia da semana (começando da linha 1, pois linha 0 é cabeçalho)
@@ -6648,8 +6715,7 @@
          */
         async function getNextOpenTime() {
             try {
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 const lines = csvText.trim().split('\n');
                 const currentTime = getCurrentDateInTimezone();
                 const currentDay = currentTime.getDay();
@@ -6663,12 +6729,12 @@
                         const values = lines[i].split(',');
                         const csvDayName = values[0]?.trim();
                         
-                        if (csvDayName.toLowerCase() === dayName.toLowerCase()) {
+                        if (csvDayName && csvDayName.toLowerCase() === dayName.toLowerCase()) {
                             // Pegar primeiro horário do dia
                             const firstStartTime = values[1]?.trim();
                             if (firstStartTime && firstStartTime !== '') {
                                 const dayLabel = dayOffset === 0 ? 'Hoje' : 
-                                               dayOffset === 1 ? 'Amanhã' : dayName;
+                                               dayOffset === 1 ? 'Amanhã' : dayName.charAt(0).toUpperCase() + dayName.slice(1);
                                 return `${dayLabel} às ${firstStartTime}`;
                             }
                             break;
@@ -11327,9 +11393,8 @@
         // Operating Hours Functions
         async function updateOperatingHours() {
             try {
-                // Fetch CSV data directly for real-time updates
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                // Fetch CSV data via cache for stability
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 
                 // Parse CSV manually
                 const lines = csvText.trim().split('\n');
@@ -11644,9 +11709,8 @@
             document.body.style.overflow = 'hidden';
             
             try {
-                // Fetch CSV data directly
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                // Fetch CSV data via cache
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 
                 debugLog('CSV loaded successfully:', csvText.substring(0, 200));
                 
