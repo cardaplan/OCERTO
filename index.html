@@ -1535,6 +1535,11 @@
         let neighborhoodsData = []; // Dados dos bairros para taxa de delivery
         let currentDeliveryFee = null; // Taxa de delivery atual
         let isDataLoaded = false;
+        // Flags e buffers para carregamento independente
+        let menuItemsRaw = [];
+        let hasInitializedApp = false;
+        let hasHiddenPreloader = false;
+        let navArrowsSetupDone = false;
         
         // Variável global para armazenar o timezone configurado (vem do config.js)
         let globalTimezone = TIMEZONE;
@@ -2622,6 +2627,43 @@
             return processedData;
         }
 
+        // Monta o menu e inicializa o app assim que categorias e itens estiverem prontos
+        function tryBuildMenuAndInit() {
+            try {
+                if (!Array.isArray(categoriesData) || categoriesData.length === 0) return;
+                if (!Array.isArray(menuItemsRaw) || menuItemsRaw.length === 0) return;
+
+                // Processar dados principais
+                menuData = processMenuData(menuItemsRaw, categoriesData);
+
+                // Marcar core como carregado
+                isDataLoaded = true;
+                updateProgress(95);
+
+                // Renderizações iniciais
+                try { renderCategoryNavigation(); } catch (e) {}
+                try { renderMenu(); } catch (e) {}
+
+                // Atualizar horários assim que possível (independente)
+                try { updateOperatingHours(); } catch (e) {}
+
+                // Ocultar preloader quando núcleo estiver pronto
+                if (!hasHiddenPreloader) {
+                    hasHiddenPreloader = true;
+                    updateProgress(100);
+                    setTimeout(() => { hidePreloader(); }, 300);
+                }
+
+                // Inicializar app apenas uma vez
+                if (!hasInitializedApp) {
+                    hasInitializedApp = true;
+                    initializeApp();
+                }
+            } catch (err) {
+                errorLog('Erro ao montar menu/initializar app:', err);
+            }
+        }
+
         // Function to show preloader
         function showPreloader() {
             // Verificar se a variável PRELOADER_LOGO_URL existe e não está vazia
@@ -3000,100 +3042,90 @@
                 applyConfiguration();
                 updateProgress(20);
 
-                // Start remaining CSV fetches concurrently (preserve processing order below)
+                // Iniciar carregamentos em paralelo e processar cada um conforme concluir
                 infoLog('Loading categories data...');
-                const categoriesPromise = loadCSVData(CATEGORIES_CSV_URL);
+                const categoriesPromise = loadCSVData(CATEGORIES_CSV_URL)
+                    .then(data => {
+                        categoriesData = data || [];
+                        updateProgress(40);
+                        try { renderCategoryNavigation(); } catch (e) {}
+                        tryBuildMenuAndInit();
+                    })
+                    .catch(error => {
+                        errorLog('❌ Error loading categories:', error.message || error);
+                        categoriesData = [];
+                    });
 
                 infoLog('Loading menu items data...');
-                const menuItemsPromise = loadCSVData(MENU_CSV_URL);
+                const menuItemsPromise = loadCSVData(MENU_CSV_URL)
+                    .then(items => {
+                        menuItemsRaw = items || [];
+                        updateProgress(65);
+                        tryBuildMenuAndInit();
+                    })
+                    .catch(error => {
+                        errorLog('❌ Error loading menu items:', error.message || error);
+                        menuItemsRaw = [];
+                    });
 
                 infoLog('Loading hours data...');
-                const hoursPromise = loadCSVData(HOURS_CSV_URL);
+                const hoursPromise = loadCSVData(HOURS_CSV_URL)
+                    .then(data => {
+                        hoursData = data || [];
+                        debugLog('Hours data loaded:', hoursData.length, 'entries');
+                        if (hoursData.length > 0) {
+                            debugLog('🚀 Initializing global timezone...');
+                            initializeGlobalTimezone();
+                            if (globalTimezone) {
+                                debugLog('✅ Timezone system initialized:', globalTimezone);
+                            } else {
+                                warnLog('❌ Timezone system not configured properly');
+                            }
+                            try { updateOperatingHours(); } catch (e) {}
+                        }
+                        updateProgress(80);
+                    })
+                    .catch(error => {
+                        errorLog('❌ Error loading hours:', error.message || error);
+                        hoursData = [];
+                    });
 
                 debugLog('🏠️ Loading neighborhoods data...');
-                const neighborhoodsPromise = loadCSVData(NEIGHBORHOODS_CSV_URL);
+                const neighborhoodsPromise = loadCSVData(NEIGHBORHOODS_CSV_URL)
+                    .then(data => {
+                        neighborhoodsData = (data || []).map(row => ({
+                            bairro: (row.bairro || row.nome_bairro || row.Bairro || row.BAIRRO || '').trim().toLowerCase(),
+                            taxa: parseFloat((row.taxa || row.valor_taxa || row.Taxa || row.TAXA || '0').toString().replace(',', '.')) || 0
+                        })).filter(item => item.bairro);
+                        window.neighborhoodsData = neighborhoodsData;
+                        try { prepareNeighborhoodsAutocomplete(); } catch (e) {}
+                        infoLog(`✅ Neighborhoods loaded:`, neighborhoodsData.length, 'items');
+                    })
+                    .catch(error => {
+                        errorLog('❌ Error loading neighborhoods:', error.message || error);
+                        neighborhoodsData = [];
+                    });
 
                 debugLog('🎟️ Loading coupons data...');
-                const couponsPromise = loadCSVData(COUPONS_CSV_URL);
+                const couponsPromise = loadCSVData(COUPONS_CSV_URL)
+                    .then(data => {
+                        couponsData = data || [];
+                        infoLog(`✅ Coupons loaded:`, couponsData.length, 'items');
+                    })
+                    .catch(error => {
+                        errorLog('❌ Error loading coupons:', error.message || error);
+                        couponsData = [];
+                    });
 
-                // Await and process results in the original sequence
-                categoriesData = await categoriesPromise;
-                updateProgress(40);
-
-                const menuItems = await menuItemsPromise;
-                updateProgress(65);
-
-                hoursData = await hoursPromise;
-                debugLog('Hours data loaded:', hoursData.length, 'entries');
-                
-                if (hoursData.length > 0) {
-                    // Inicializar timezone global
-                    debugLog('🚀 Initializing global timezone...');
-                    initializeGlobalTimezone();
-                    
-                    // Verificar se timezone foi configurado corretamente
-                    if (globalTimezone) {
-                        debugLog('✅ Timezone system initialized:', globalTimezone);
-                    } else {
-                        warnLog('❌ Timezone system not configured properly');
-                    }
-                }
-                updateProgress(80);
-
-                // Load neighborhoods data (optional)
-                try {
-                    neighborhoodsData = await neighborhoodsPromise;
-                    // Process neighborhoods data - mapear para formato consistente
-                    neighborhoodsData = neighborhoodsData.map(row => ({
-                        // Tentar várias possibilidades de nomes de colunas
-                        bairro: (row.bairro || row.nome_bairro || row.Bairro || row.BAIRRO || '').trim().toLowerCase(),
-                        taxa: parseFloat((row.taxa || row.valor_taxa || row.Taxa || row.TAXA || '0').toString().replace(',', '.')) || 0
-                    })).filter(item => item.bairro); // Remove empty entries
-                    
-                    // Expor dados globalmente para acesso em outras funções
-                    window.neighborhoodsData = neighborhoodsData;
-                    
-                    // Preparar lista para autocomplete
-                    prepareNeighborhoodsAutocomplete();
-                    
-                    infoLog(`✅ Neighborhoods loaded:`, neighborhoodsData.length, 'items');
-                } catch (error) {
-                    errorLog('❌ Error loading neighborhoods:', error.message);
-                    neighborhoodsData = []; // Fallback to empty array
-                }
-                
-                // Load coupons data (optional)
-                try {
-                    couponsData = await couponsPromise;
-                    infoLog(`✅ Coupons loaded:`, couponsData.length, 'items');
-                } catch (error) {
-                    errorLog('❌ Error loading coupons:', error.message);
-                    couponsData = []; // Fallback to empty array
-                }
-                updateProgress(85);
-
-                // Process and organize data
-                debugLog('Processing and organizing data...');
-                menuData = processMenuData(menuItems, categoriesData);
-                updateProgress(95);
-
-                // Update operating hours display
-                updateOperatingHours();
-                
-                // Set up periodic updates for operating hours (every minute)
-                setInterval(updateOperatingHours, 60000);
-
-                // Mark data as loaded
-                isDataLoaded = true;
-                updateProgress(100);
-
-                infoLog('Data loaded successfully:', { categoriesData, menuData });
-                
-                // Hide preloader and initialize app
-                setTimeout(() => {
-                    hidePreloader();
-                    initializeApp();
-                }, 500);
+                // Apenas aguardar para log; a UI foi sendo montada incrementalmente
+                await Promise.allSettled([
+                    categoriesPromise,
+                    menuItemsPromise,
+                    hoursPromise,
+                    neighborhoodsPromise,
+                    couponsPromise
+                ]);
+                infoLog('CSV fetches settled');
 
             } catch (error) {
                 errorLog('Error loading data:', error);
@@ -3503,6 +3535,13 @@
             
             if (!leftArrow || !rightArrow || !container) return;
             
+            // Evitar múltiplas inscrições
+            if (navArrowsSetupDone) {
+                setTimeout(updateNavigationArrows, 100);
+                return;
+            }
+            navArrowsSetupDone = true;
+            
             // Event listeners para as setas
             leftArrow.addEventListener('click', () => scrollCategories('left'));
             rightArrow.addEventListener('click', () => scrollCategories('right'));
@@ -3547,7 +3586,7 @@
         // Render menu sections
         function renderMenu() {
             const container = document.getElementById('menu-content');
-            if (!container || !isDataLoaded) return;
+            if (!container || !categoriesData.length || !menuData || Object.keys(menuData).length === 0) return;
             
             let html = '';
 
