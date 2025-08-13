@@ -5133,6 +5133,11 @@
                     
                     // Se não há erros, garantir que orderData está atualizado
                     if (!hasErrors) {
+                        // Se bairro manual foi digitado mas taxa ainda não foi buscada, tentar agora
+                        const manualNeighborhood = document.getElementById('manual-neighborhood')?.value?.trim() || '';
+                        if (manualNeighborhood) {
+                            try { performNeighborhoodSearch(manualNeighborhood); } catch (_) {}
+                        }
                         updateManualAddressData();
                     }
                     
@@ -5180,6 +5185,15 @@
                     if (!number) {
                         showFieldError('number', 'Número do endereço é obrigatório');
                         hasErrors = true;
+                    }
+                    
+                    // Se bairro está digitado mas taxa ainda não foi buscada, tentar buscar agora
+                    if (!hasErrors) {
+                        const neighborhoodInput = document.getElementById('neighborhood');
+                        const neighborhoodVal = neighborhoodInput?.value?.trim() || '';
+                        if (neighborhoodVal) {
+                            try { buscarTaxaPorBairroRedundante(neighborhoodVal, true); } catch (_) {}
+                        }
                     }
                     
                     // If no errors, update orderData
@@ -5848,7 +5862,7 @@
                         if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
                             bairroWrapper.innerHTML = `<select id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\"><option value=\"\">Selecione...</option></select>`;
                         } else {
-                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
                         }
                     }
                 }
@@ -5876,7 +5890,7 @@
                         if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
                             manualBairroWrapper.innerHTML = `<select id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee(); updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
                         } else {
-                            manualBairroWrapper.innerHTML = `<input type=\"text\" id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-neighborhood');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                            manualBairroWrapper.innerHTML = `<input type=\"text\" id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee();\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
                         }
                     }
                 }
