@@ -11456,12 +11456,19 @@
                 debugLog('- Status:', isOpen ? 'ABERTO' : 'FECHADO');
                 debugLog('- Próximo fechamento:', nextCloseTime || 'N/A');
                 
-                // Status visual é atualizado somente no carregamento do CSV (não aqui)
-                // updateOpenStatusFromCSV(isOpen);
-                
-                // Atualizar apenas o texto auxiliar de horário
+                // Atualizar indicador de status com base no horário atual e planilha de horários
+                const statusText = document.getElementById('status-text');
                 const hoursText = document.getElementById('hours-text');
-                if (hoursText) {
+                const statusDot = document.getElementById('status-dot');
+                
+                if (statusText && hoursText && statusDot) {
+                    statusText.textContent = isOpen ? 'Aberto' : 'Fechado';
+                    statusText.className = 'font-medium';
+                    statusText.style.color = isOpen ? 'var(--cor-sucesso)' : 'var(--cor-erro)';
+                    
+                    statusDot.className = 'w-2 h-2 rounded-full';
+                    statusDot.style.backgroundColor = isOpen ? 'var(--cor-sucesso)' : 'var(--cor-erro)';
+                    
                     if (isOpen && nextCloseTime) {
                         hoursText.textContent = `até ${nextCloseTime}`;
                     } else if (!isOpen) {
@@ -11961,16 +11968,13 @@
         }
         */
         
-        // Removido: atualização periódica baseada em horário local
-        // setInterval(updateOpenStatusIndicator, 60000);
-        
-        // Removido: atualização inicial baseada em horário local
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     setTimeout(updateOpenStatusIndicator, 2000);
-        // });
-        
-        // Update hours every minute
+        // Atualiza status/hours a cada minuto com base nos horários da planilha
         setInterval(updateOperatingHours, 60000);
+        
+        // Atualiza logo na inicialização após DOM pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateOperatingHours, 800);
+        });
         
         // ===== FUNÇÕES RELÓGIO TIMEZONE =====
         
