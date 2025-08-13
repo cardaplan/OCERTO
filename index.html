@@ -5896,6 +5896,21 @@
                 }
 
                 try { setupAddressSelects(); } catch (_) {}
+                
+                // Auto alternar para modo manual quando CEP estiver invisível
+                const cepContainer = document.getElementById('cep-mode-container');
+                const manualContainer = document.getElementById('manual-address-container');
+                if (typeof cepVisible !== 'undefined' && !cepVisible) {
+                    if (cepContainer) cepContainer.style.display = 'none';
+                    if (manualContainer) manualContainer.classList.remove('hidden');
+                }
+                
+                // Se o CEP já estiver preenchido em select/input, acionar busca de endereço
+                const cepElInit = document.getElementById('cep');
+                const cepInit = (cepElInit && cepElInit.tagName === 'SELECT' ? cepElInit.value : (cepElInit?.value || '')).toString().replace(/\D/g, '');
+                if (cepElInit && cepInit && cepInit.length === 8) {
+                    try { fetchAddress(); } catch (_) {}
+                }
             } catch (e) {
                 errorLog('Erro ao renderizar campos delivery:', e);
             }
