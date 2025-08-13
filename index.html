@@ -199,7 +199,6 @@
         .nav-arrow:hover {
             transform: scale(1.05);
         }
-        
         .nav-arrow:active {
             transform: scale(0.95);
         }
@@ -797,7 +796,7 @@
                             <path d="M2 2h2v2H2z"/>
                             <path d="M6 0v6H0V0zM5 1H1v4h4zM4 12H2v2h2z"/>
                             <path d="M6 10v6H0v-6zm-5 1v4h4v-4zm11-9h2v2h-2z"/>
-                            <path d="M10 0v6h6V0zm5 1v4h-4V1zM8 1V0h1v2H8v2H7V1zm0 5V4h1v2zM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8zm0 0v1H2V8H1v1H0V7h3v1zm10 1h-1V7h1zm-1 0h-1v2h2v-1h-1zm-4 0h2v1h-1v1h-1zm2 3v-1h-1v1h-1v1H9v1h3v-2zm0 0h3v1h-2v1h-1zm-4-1v1h1v-2H7v1z"/>
+                            <path d="M10 0v6h6V0zm5 1v4h-4V1zM8 1V0h1v2H8v2H7V1zm0 5V4h1v2zM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8zm0 0v1H2V8H1v1H0V7h3v1zm10 1h-1V7h1v-1h-1zm-1 0h-1v2h2v-1h-1zm-4 0h2v1h-1v1h-1zm2 3v-1h-1v1h-1v1H9v1h3v-2zm0 0h3v1h-2v1h-1zm-4-1v1h1v-2H7v1z"/>
                             <path d="M7 12h1v3h4v1H7zm9 2v2h-3v-1h2v-1z"/>
                         </svg>
                     </div>
@@ -3194,7 +3193,6 @@
             // Restaurar dados do usuário do localStorage
             restoreUserDataFromStorage();
         }
-        
         // Restaurar dados do usuário do localStorage
         function restoreUserDataFromStorage() {
             debugLog('🔄 Restaurando dados do usuário do localStorage...');
@@ -3396,9 +3394,6 @@
                 text: classificacaoAdicional.trim()
             };
         }
-
-
-
         // Process image URL to handle different sources
         function processImageUrl(url) {
             if (!url || url.trim() === '') {
@@ -3587,7 +3582,6 @@
             // Atualizar setas inicialmente
             setTimeout(updateNavigationArrows, 100);
         }
-        
         // Setup click listeners for category buttons
         function setupCategoryClickListeners() {
             const categoryButtons = document.querySelectorAll('.category-item');
@@ -3778,7 +3772,6 @@
                             </div>
                         `;
                     }).join('');
-                    
                 } else if (variations.type === 'variation') {
                     // Formato legado - variação única
                     const inputType = variations.required ? 'radio' : 'checkbox';
@@ -3979,7 +3972,6 @@
             updateModalPricing();
             updateAddToCartButton();
         }
-
         // Handle multiple variation change (novo formato)
         function handleMultipleVariationChange(variationIndex, optionIndex, name, price, type, isRequired, isRemoval) {
             debugLog('🎯 handleMultipleVariationChange chamada:', { 
@@ -4139,7 +4131,6 @@
                 button.classList.add('opacity-50', 'cursor-not-allowed');
                 return;
             }
-            
             if (variations) {
                 if (variations.type === 'multiple_variations') {
                     // Novo formato - verificar variações obrigatórias
@@ -4327,7 +4318,6 @@
             } else if (priceType === 'consultation') {
                 basePrice = 0; // Preço de consulta não tem valor numérico
             }
-            
             const totalPrice = basePrice + variationPrice;
             
             // Create variation key for grouping similar items (include notes in key if present)
@@ -4515,7 +4505,6 @@
             cartFab.classList.add('bounce');
             setTimeout(() => cartFab.classList.remove('bounce'), 600);
         }
-
         // Open cart
         async function openCart() {
             // VERIFICAR SE ESTABELECIMENTO ESTÁ ABERTO
@@ -4708,7 +4697,6 @@
             
             debugLog('✅ Carrinho limpo com sucesso');
         }
-
         // Reset Step 2 - Limpa completamente o estado do step 2
         function resetStep2() {
             debugLog('=== RESET STEP 2 ===');
@@ -4907,7 +4895,6 @@
                 document.getElementById('cart-fab').style.display = 'flex';
             }
         }
-        
         // Back to cart from checkout
         function backToCart() {
             // Fechar checkout
@@ -5078,7 +5065,6 @@
                 errorLog('syncDeliveryFeeBeforeStep3 error:', e);
             }
         }
-        
         // Enhanced Step 2 validation - validates all required fields
         function validateStep2Enhanced() {
             const deliveryType = document.querySelector('input[name="delivery-type"]:checked')?.value;
@@ -5269,9 +5255,6 @@
         function prevStep(step) {
             showStep(step);
         }
-
-
-
         // Update cart quantity
         function updateCartQuantity(itemKey, delta) {
             const item = cart.find(item => item.itemKey === itemKey);
@@ -5440,7 +5423,6 @@
                 setupPaymentMethods();
                 return;
             }
-            
             // Update payment methods visibility based on delivery type
             setupPaymentMethods();
             
@@ -5513,10 +5495,7 @@
                                         Corrigir endereço / Não sei o CEP
                                     </button>
                                 </div>
-                                <select id="cep" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="clearFieldError('cep'); fetchAddress(); updateContinueButton();" onblur="updateContinueButton();">
-                                    <option value="">Selecione...</option>
-                                    <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                </select>
+                                <div id="cep-field-wrapper"></div>
                             </div>
 
                             <!-- Modo Endereço Manual (Oculto inicialmente) -->
@@ -5544,49 +5523,31 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Bairro *</label>
-                                        <select id="manual-neighborhood" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee(); updateContinueButton();">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from neighborhoodsData -->
-                                        </select>
+                                        <div id="manual-bairro-field-wrapper"></div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                                        <select id="manual-city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateManualAddressData(); clearFieldError('manual-city'); updateContinueButton();">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                        </select>
+                                        <div id="manual-city-field-wrapper"></div>
                                     </div>
-                                </div>
-                            </div>
-                            <div id="address-fields" class="hidden space-y-4">
+                                                        </div>
+                        </div>
+                        <script>
+                            // Inserido: renderização condicional dos campos de CEP/CIDADE/BAIRRO
+                            try { if (typeof renderDeliveryFieldsControl === 'function') renderDeliveryFieldsControl(); } catch (_) {}
+                        </script>
+                        <div id="address-fields" class="hidden space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Endereço *</label>
                                     <input type="text" id="street" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Rua, Avenida..." autocomplete="off" oninput="updateAddressData(); clearFieldError('street');">
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
-                                        <input type="text" id="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="123" autocomplete="off" oninput="clearFieldError('number')" onchange="updateContinueButton()" onblur="updateContinueButton()">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
-                                        <input type="text" id="complement" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Apto 45" autocomplete="off">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Bairro *</label>
-                                        <select id="neighborhood" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from neighborhoodsData -->
-                                        </select>
+                                        <div id="bairro-field-wrapper"></div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                                        <select id="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateAddressData(); clearFieldError('city');">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                        </select>
+                                        <div id="city-field-wrapper"></div>
                                     </div>
                                 </div>
                             </div>
@@ -5595,7 +5556,7 @@
                     continueBtn.disabled = true;
                     
                     // Popular selects de CEP, Bairro e Cidade
-                    try { setupAddressSelects(); } catch (e) { console.error('Erro setupAddressSelects', e); }
+                    try { renderDeliveryFieldsControl(); } catch (e) { console.error('Erro renderDeliveryFieldsControl', e); }
                     
                     // Foco automático no campo de CEP após renderização
                     setTimeout(() => {
@@ -5613,7 +5574,6 @@
                     break;
             }
         }
-
         // Handle CEP input - fetch address when 8 digits are entered
         function handleCepInput() {
             const cepEl = document.getElementById('cep');
@@ -5805,7 +5765,6 @@
                     debugLog(`Endereço encontrado via ${api.name}:`, orderData.address);
                     updateContinueButton();
                     return; // Success, exit function
-                    
                 } catch (error) {
                     errorLog(`Erro na API ${api.name}:`, error);
                     lastError = error;
@@ -5866,6 +5825,89 @@
         }
 
         // Popular selects de CEP, Bairro e Cidade a partir do config.js e da planilha de bairros
+        function setupAddressSelects() {
+        }
+        
+        // ==== CONTROLE DE CAMPOS DELIVERY (inserido)
+        function renderDeliveryFieldsControl() {
+            try {
+                const cepWrapper = document.getElementById('cep-field-wrapper');
+                if (cepWrapper) {
+                    if (typeof cepVisible !== 'undefined' && !cepVisible) {
+                        if (cepWrapper.parentElement) cepWrapper.parentElement.style.display = 'none';
+                    } else {
+                        if (cepWrapper.parentElement) cepWrapper.parentElement.style.display = '';
+                        if (typeof cepSelectEnabled !== 'undefined' && cepSelectEnabled) {
+                            cepWrapper.innerHTML = `<select id=\"cep\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent\" onchange=\"clearFieldError('cep'); fetchAddress(); updateContinueButton();\" onblur=\"updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            cepWrapper.innerHTML = `<input type=\"text\" id=\"cep\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Digite o CEP\" autocomplete=\"off\" oninput=\"handleCepInput(); clearFieldError('cep');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\" inputmode=\"numeric\" maxlength=\"9\">`;
+                        }
+                    }
+                }
+
+                const bairroWrapper = document.getElementById('bairro-field-wrapper');
+                if (bairroWrapper) {
+                    if (typeof bairroVisible !== 'undefined' && !bairroVisible) {
+                        if (bairroWrapper.parentElement && bairroWrapper.parentElement.parentElement) bairroWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (bairroWrapper.parentElement && bairroWrapper.parentElement.parentElement) bairroWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
+                            bairroWrapper.innerHTML = `<select id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const cityWrapper = document.getElementById('city-field-wrapper');
+                if (cityWrapper) {
+                    if (typeof cidadeVisible !== 'undefined' && !cidadeVisible) {
+                        if (cityWrapper.parentElement && cityWrapper.parentElement.parentElement) cityWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (cityWrapper.parentElement && cityWrapper.parentElement.parentElement) cityWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof cidadeSelectEnabled !== 'undefined' && cidadeSelectEnabled) {
+                            cityWrapper.innerHTML = `<select id=\"city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('city');\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            cityWrapper.innerHTML = `<input type=\"text\" id=\"city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Sua cidade\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('city');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const manualBairroWrapper = document.getElementById('manual-bairro-field-wrapper');
+                if (manualBairroWrapper) {
+                    if (typeof bairroVisible !== 'undefined' && !bairroVisible) {
+                        if (manualBairroWrapper.parentElement && manualBairroWrapper.parentElement.parentElement) manualBairroWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (manualBairroWrapper.parentElement && manualBairroWrapper.parentElement.parentElement) manualBairroWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
+                            manualBairroWrapper.innerHTML = `<select id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee(); updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            manualBairroWrapper.innerHTML = `<input type=\"text\" id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-neighborhood');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const manualCityWrapper = document.getElementById('manual-city-field-wrapper');
+                if (manualCityWrapper) {
+                    if (typeof cidadeVisible !== 'undefined' && !cidadeVisible) {
+                        if (manualCityWrapper.parentElement && manualCityWrapper.parentElement.parentElement) manualCityWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (manualCityWrapper.parentElement && manualCityWrapper.parentElement.parentElement) manualCityWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof cidadeSelectEnabled !== 'undefined' && cidadeSelectEnabled) {
+                            manualCityWrapper.innerHTML = `<select id=\"manual-city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateManualAddressData(); clearFieldError('manual-city'); updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            manualCityWrapper.innerHTML = `<input type=\"text\" id=\"manual-city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Sua cidade\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-city');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                try { setupAddressSelects(); } catch (_) {}
+            } catch (e) {
+                errorLog('Erro ao renderizar campos delivery:', e);
+            }
+        }
+        // ==== FIM CONTROLE DE CAMPOS DELIVERY ====
+
         function setupAddressSelects() {
             try {
                 const cepsLista = (typeof SELECT_CEPS !== 'undefined' && Array.isArray(SELECT_CEPS)) ? SELECT_CEPS : [];
@@ -6007,7 +6049,6 @@
             
             showOtherOptionsBtn.style.display = 'block';
         }
-
         // Hide "Outras opções" button
         function hideOtherOptionsButton() {
             const showOtherOptionsBtn = document.getElementById('show-other-options');
@@ -7897,7 +7938,6 @@
                 updateContinueButtonState(isValid, neighborhood);
             }, 500);
         }
-        
         /**
          * Busca taxa de delivery por bairro no modo CEP
          * @param {string} neighborhood - Nome do bairro a ser pesquisado
@@ -8061,7 +8101,6 @@
                 hideNeighborhoodSpinner();
             }
         }
-        
         /**
          * Função REDUNDANTE para buscar taxa de entrega por bairro
          * Implementa debounce e busca mais precisa por termo completo
@@ -10637,7 +10676,6 @@
             debugLog('================================');
             // Show loading message
             showCustomAlert('Enviando pedido...', 'info');
-            
             // Baseado na resposta do servidor, vamos usar diretamente o método GET
             // já que o servidor está configurado apenas para aceitar requisições GET
             
@@ -11723,7 +11761,6 @@
                 }
                 const headers = headerLineIndex >= 0 ? lines[headerLineIndex].split(',') : [];
                 debugLog('📋 Cabeçalhos:', headers);
-                
                 let html = '';
                 
                 // Process each day (starting from dataStartIndex)
@@ -12924,7 +12961,6 @@
         return success;
     };
     // ===== FUNÇÕES ESPECÍFICAS DE CUPONS =====
-    
     /**
      * Salvar cupom no localStorage
      */
@@ -13124,7 +13160,6 @@
         return null;
     };
     // ===== FUNÇÕES DE LIMPEZA GERAL =====
-    
     /**
      * Limpar todos os dados do sistema localStorage
      */

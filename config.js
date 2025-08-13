@@ -280,3 +280,26 @@ const SELECT_CIDADES = [
     'São Paulo - SP', 'Rio de Janeiro - RJ', 'Belo Horizonte - MG'
 ];
 
+// ====================================================================
+// CONTROLES DE FORMULÁRIO DE ENTREGA (DELIVERY)
+// ====================================================================
+// Habilita exibição como <select> ou <input type="text">
+// - Quando true: renderiza como <select> e usa as listas estáticas/planilha
+// - Quando false: renderiza como campo de texto mantendo estilos e validações
+const cepSelectEnabled = true;    // CEP como select
+const cidadeSelectEnabled = true; // CIDADE como select
+const bairroSelectEnabled = true; // BAIRRO como select
+
+// Controle de visibilidade dos campos
+// - Quando false: o campo fica completamente oculto (não renderiza)
+const cepVisible = true;     // Mostrar/ocultar CEP
+const cidadeVisible = true;  // Mostrar/ocultar CIDADE
+const bairroVisible = true;  // Mostrar/ocultar BAIRRO
+
+// Como usar:
+// - Ajuste as variáveis acima conforme desejado.
+// - Exemplos:
+//   - Somente CEP como select: cepSelectEnabled=true; cidadeSelectEnabled=false; bairroSelectEnabled=false
+//   - Apenas BAIRRO visível: cepVisible=false; cidadeVisible=false; bairroVisible=true
+//   - Todos ocultos: cepVisible=false; cidadeVisible=false; bairroVisible=false
+
