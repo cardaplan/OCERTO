@@ -5516,9 +5516,9 @@
                             <div id="manual-address-container" class="hidden space-y-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="block text-sm font-medium text-gray-700">Endereço Manual</label>
-                                    <button type="button" onclick="toggleAddressMode()" class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors duration-200">
-                                        Usar meu CEP
-                                    </button>
+                                    <button type="button" onclick="toggleAddressMode()" class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors duration-200" style="display: ${typeof cepVisible !== 'undefined' && !cepVisible ? 'none' : 'inline-block'};">
+                                         Usar meu CEP
+                                     </button>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Endereço Completo *</label>
@@ -5546,6 +5546,17 @@
                                                         </div>
                         </div>
                         <div id="address-fields" class="hidden space-y-4">
+                                <!-- Inserido: Número e Complemento também no fluxo por CEP -->
+                                <div class="grid grid-cols-2 gap-3">
+                                     <div>
+                                         <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
+                                         <input type="text" id="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent" placeholder="123" autocomplete="off" oninput="clearFieldError('number')" onchange="updateContinueButton()" onblur="updateContinueButton()">
+                                     </div>
+                                     <div>
+                                         <label class="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
+                                         <input type="text" id="complement" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent" placeholder="Apto 45" autocomplete="off">
+                                     </div>
+                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Endereço *</label>
                                     <input type="text" id="street" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Rua, Avenida..." autocomplete="off" oninput="updateAddressData(); clearFieldError('street');">
