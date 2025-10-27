@@ -196,11 +196,9 @@
         .nav-arrow {
             transition: opacity 0.3s ease, transform 0.2s ease;
         }
-        
         .nav-arrow:hover {
             transform: scale(1.05);
         }
-        
         .nav-arrow:active {
             transform: scale(0.95);
         }
@@ -393,7 +391,6 @@
         .bounce {
             animation: bounce 0.6s ease;
         }
-        
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% {
                 transform: translateY(0);
@@ -586,7 +583,6 @@
             color: var(--cor-texto-branco);
             border: 1px solid rgba(255,255,255,0.2);
         }
-        
         @keyframes toastSlideIn {
             from {
                 opacity: 0;
@@ -770,7 +766,6 @@
             </div>
         </div>
     </section>
-
     <!-- Footer -->
     <footer class="py-8" style="background-color: var(--cor-fundo) !important; border-top: 5px solid transparent !important; background-image: linear-gradient(var(--cor-fundo), var(--cor-fundo)), linear-gradient(45deg, var(--cor-primaria), var(--cor-secundaria), var(--cor-terciaria), var(--cor-secundaria), var(--cor-primaria)) !important; background-origin: border-box !important; background-clip: padding-box, border-box !important; background-size: 100% 100%, 400% 400% !important; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important; position: relative; overflow: hidden;">
         <div class="max-w-4xl mx-auto px-4">
@@ -801,7 +796,7 @@
                             <path d="M2 2h2v2H2z"/>
                             <path d="M6 0v6H0V0zM5 1H1v4h4zM4 12H2v2h2z"/>
                             <path d="M6 10v6H0v-6zm-5 1v4h4v-4zm11-9h2v2h-2z"/>
-                            <path d="M10 0v6h6V0zm5 1v4h-4V1zM8 1V0h1v2H8v2H7V1zm0 5V4h1v2zM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8zm0 0v1H2V8H1v1H0V7h3v1zm10 1h-1V7h1zm-1 0h-1v2h2v-1h-1zm-4 0h2v1h-1v1h-1zm2 3v-1h-1v1h-1v1H9v1h3v-2zm0 0h3v1h-2v1h-1zm-4-1v1h1v-2H7v1z"/>
+                            <path d="M10 0v6h6V0zm5 1v4h-4V1zM8 1V0h1v2H8v2H7V1zm0 5V4h1v2zM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8zm0 0v1H2V8H1v1H0V7h3v1zm10 1h-1V7h1v-1h-1zm-1 0h-1v2h2v-1h-1zm-4 0h2v1h-1v1h-1zm2 3v-1h-1v1h-1v1H9v1h3v-2zm0 0h3v1h-2v1h-1zm-4-1v1h1v-2H7v1z"/>
                             <path d="M7 12h1v3h4v1H7zm9 2v2h-3v-1h2v-1z"/>
                         </svg>
                     </div>
@@ -966,7 +961,6 @@
             </div>
         </div>
     </div>
-
     <!-- Edit Notes Modal -->
     <div id="edit-notes-modal" class="fixed inset-0 bg-black bg-opacity-50 modal-overlay hidden z-50" onclick="closeEditNotes(event)">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -1119,7 +1113,6 @@
                                 <span id="checkout-order-total" class="text-xl font-bold" style="color: var(--cor-primaria) !important;">R$ 0,00</span>
                             </div>
                         </div>
-                        
                         <!-- CAMPO DE CUPOM EXPANSÍVEL -->
                         <div class="border-t border-gray-200 pt-3">
                             
@@ -1313,7 +1306,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Estabelecimento Fechado -->
     <div id="closed-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[1100] hidden">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -1512,7 +1504,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <!-- Footer -->
                     <div class="mt-6 pt-4 border-t text-center" style="border-color: var(--cor-primaria-clara);">
                         <p class="text-xs" style="color: var(--cor-texto-secundario) !important; opacity: 0.8;">💡 Pressione <strong>F1</strong> a qualquer momento para ver esta ajuda</p>
@@ -1672,14 +1663,7 @@
             try {
                 debugLog('Loading CSV from:', url);
                 
-                const response = await fetch(url);
-                debugLog('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvText = await response.text();
+                const csvText = await loadCSVTextWithCache(url, CSV_CACHE_TTL_MS);
                 debugLog('CSV loaded:', csvText.length, 'chars');
                 
                 const parsedData = parseCSV(csvText);
@@ -1688,7 +1672,7 @@
                 return parsedData;
             } catch (error) {
                 errorLog('Error loading CSV data from', url, ':', error);
-
+                
                 
                 throw error;
             }
@@ -1720,7 +1704,6 @@
 
             return config;
         }
-
         // Function to apply configuration to the page
         function applyConfiguration() {
             try {
@@ -1898,7 +1881,6 @@
                 errorLog('Error applying configuration:', error);
             }
         }
-
         // Function to update header with config data
         function updateHeaderWithConfig() {
             const companyNameElement = document.getElementById('header-company-name');
@@ -2095,7 +2077,6 @@
                 errorLog('❌ Error setting up delivery options:', error);
             }
         }
-
         // Function to update footer with configuration data
         function updateFooterWithConfig() {
             const contactInfo = getContactInfo();
@@ -2296,7 +2277,6 @@
             // Verifica o segundo dígito
             return parseInt(cleanCPF.charAt(10)) === digit2;
         }
-        
         function detectPixKeyType(pixKey) {
             if (!pixKey || pixKey.trim() === '') return 'empty';
             
@@ -2448,7 +2428,6 @@
             
             document.body.removeChild(textArea);
         }
-
         function showPixInfo() {
             const checkoutConfig = getCheckoutConfig();
             const pixKey = checkoutConfig.step3_chave_pix;
@@ -2621,7 +2600,6 @@
 
             return processedData;
         }
-
         // Function to show preloader
         function showPreloader() {
             // Verificar se a variável PRELOADER_LOGO_URL existe e não está vazia
@@ -2821,7 +2799,6 @@
                 </style>
             `;
             document.body.insertAdjacentHTML('beforeend', preloaderHTML);
-            
             // Desabilitar scroll do body durante o preloader
             document.body.style.overflow = 'hidden';
             if (typeof debugLog === 'function') {
@@ -2897,6 +2874,80 @@
             return fetch(cacheBustedUrl, fetchOptions);
         }
         
+        // CSV caching utilities (30-minute TTL; stale-if-error)
+        const CSV_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutos
+        const CSV_CACHE_PREFIX = 'csv_cache_v1::';
+        const inFlightCSVRequests = new Map();
+        
+        function getCSVCacheKey(url) {
+            return `${CSV_CACHE_PREFIX}${url}`;
+        }
+        
+        function readCSVCache(url) {
+            try {
+                const raw = localStorage.getItem(getCSVCacheKey(url));
+                if (!raw) return null;
+                const obj = JSON.parse(raw);
+                if (!obj || typeof obj.timestamp !== 'number' || typeof obj.text !== 'string') return null;
+                return obj;
+            } catch (_) {
+                return null;
+            }
+        }
+        
+        function writeCSVCache(url, text) {
+            try {
+                const payload = { timestamp: Date.now(), text };
+                localStorage.setItem(getCSVCacheKey(url), JSON.stringify(payload));
+            } catch (e) {
+                try { localStorage.removeItem(getCSVCacheKey(url)); } catch (_) { /* noop */ }
+            }
+        }
+        
+        async function fetchCSVNetwork(url, fetchOptions = {}) {
+            const response = await fetch(url, { cache: 'no-cache', ...fetchOptions });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.text();
+        }
+        
+        async function loadCSVTextWithCache(url, ttlMs = CSV_CACHE_TTL_MS, options = {}) {
+            const { forceRefresh = false, fetchOptions = {} } = options || {};
+            const cached = readCSVCache(url);
+            const isFresh = cached && (Date.now() - cached.timestamp) < ttlMs;
+            
+            if (isFresh && !forceRefresh) {
+                debugLog('🗃️ Using cached CSV:', url);
+                return cached.text;
+            }
+            
+            if (inFlightCSVRequests.has(url)) {
+                debugLog('⏳ Awaiting in-flight CSV request:', url);
+                try {
+                    return await inFlightCSVRequests.get(url);
+                } catch (e) {
+                    if (cached) return cached.text; // stale-if-error
+                    throw e;
+                }
+            }
+            
+            const fetchPromise = (async () => {
+                try {
+                    debugLog('🌐 Fetching CSV (network):', url);
+                    const text = await fetchCSVNetwork(url, fetchOptions);
+                    writeCSVCache(url, text);
+                    return text;
+                } catch (e) {
+                    warnLog('⚠️ Network fetch failed, using cached CSV if available:', url, e);
+                    if (cached) return cached.text; // stale-if-error
+                    throw e;
+                } finally {
+                    inFlightCSVRequests.delete(url);
+                }
+            })();
+            
+            inFlightCSVRequests.set(url, fetchPromise);
+            return await fetchPromise;
+        }
         // Função para limpar localStorage e recarregar página
         function clearStorageAndReload() {
             try {
@@ -3026,6 +3077,28 @@
                 hoursData = await hoursPromise;
                 debugLog('Hours data loaded:', hoursData.length, 'entries');
                 
+                // Determinar status aberto/fechado diretamente do CSV carregado
+                try {
+                    let isOpenFromCSV = false;
+                    if (Array.isArray(hoursData) && hoursData.length > 0) {
+                        const headerRow = hoursData[0];
+                        // Procurar coluna que indique status (ex.: status, aberto, open)
+                        const possibleStatusKeys = ['status', 'aberto', 'open', 'is_open', 'open_now'];
+                        const statusKey = Object.keys(headerRow).find(k => possibleStatusKeys.includes(k.trim().toLowerCase()));
+                        if (statusKey) {
+                            // Encontrar uma linha que contenha o status atual global (primeira ocorrência válida)
+                            const rowWithStatus = hoursData.find(r => typeof r[statusKey] === 'string' && r[statusKey].trim().length > 0) || null;
+                            if (rowWithStatus) {
+                                const v = rowWithStatus[statusKey].toString().trim().toLowerCase();
+                                isOpenFromCSV = v === 'sim' || v === 'true' || v === 'aberto' || v === 'open' || v === '1';
+                            }
+                        }
+                    }
+                    updateOpenStatusFromCSV(isOpenFromCSV);
+                } catch (e) {
+                    warnLog('Não foi possível determinar status aberto/fechado a partir do CSV:', e);
+                }
+                
                 if (hoursData.length > 0) {
                     // Inicializar timezone global
                     debugLog('🚀 Initializing global timezone...');
@@ -3094,7 +3167,6 @@
                     hidePreloader();
                     initializeApp();
                 }, 500);
-
             } catch (error) {
                 errorLog('Error loading data:', error);
                 hidePreloader();
@@ -3121,7 +3193,6 @@
             // Restaurar dados do usuário do localStorage
             restoreUserDataFromStorage();
         }
-        
         // Restaurar dados do usuário do localStorage
         function restoreUserDataFromStorage() {
             debugLog('🔄 Restaurando dados do usuário do localStorage...');
@@ -3285,7 +3356,6 @@
                     variations: variations
                 };
             }
-            
             // Verificar formato legado
             const isRequiredVariation = classificacaoAdicional.startsWith('#Var:');
             const isOptionalVariation = classificacaoAdicional.startsWith('Var:') && !isRequiredVariation;
@@ -3324,9 +3394,6 @@
                 text: classificacaoAdicional.trim()
             };
         }
-
-
-
         // Process image URL to handle different sources
         function processImageUrl(url) {
             if (!url || url.trim() === '') {
@@ -3473,7 +3540,6 @@
                 rightArrow.style.pointerEvents = 'auto';
             }
         }
-        
         // Função para rolar as categorias
         function scrollCategories(direction) {
             const container = document.getElementById('category-nav');
@@ -3516,7 +3582,6 @@
             // Atualizar setas inicialmente
             setTimeout(updateNavigationArrows, 100);
         }
-        
         // Setup click listeners for category buttons
         function setupCategoryClickListeners() {
             const categoryButtons = document.querySelectorAll('.category-item');
@@ -3630,7 +3695,6 @@
 
             container.innerHTML = html;
         }
-
         // Open product modal
         function openProductModal(productId) {
             const product = findProductById(productId);
@@ -3708,7 +3772,6 @@
                             </div>
                         `;
                     }).join('');
-                    
                 } else if (variations.type === 'variation') {
                     // Formato legado - variação única
                     const inputType = variations.required ? 'radio' : 'checkbox';
@@ -3909,7 +3972,6 @@
             updateModalPricing();
             updateAddToCartButton();
         }
-
         // Handle multiple variation change (novo formato)
         function handleMultipleVariationChange(variationIndex, optionIndex, name, price, type, isRequired, isRemoval) {
             debugLog('🎯 handleMultipleVariationChange chamada:', { 
@@ -4011,7 +4073,6 @@
             // Atualizar visibilidade dos botões de limpar
             setTimeout(toggleClearButtons, 100);
         }
-
         // Update modal pricing
         function updateModalPricing() {
             const priceType = getPriceType(currentProduct.preco);
@@ -4070,7 +4131,6 @@
                 button.classList.add('opacity-50', 'cursor-not-allowed');
                 return;
             }
-            
             if (variations) {
                 if (variations.type === 'multiple_variations') {
                     // Novo formato - verificar variações obrigatórias
@@ -4200,7 +4260,6 @@
             addToCart(currentProduct.id, quantity, selectedVariations, notes, true); // true = chamada do modal
             closeModal();
         }
-
         // Add to cart
         function addToCart(productId, quantity = 1, variations = {}, notes = '', fromModal = false) {
             if (typeof debugLog === 'function') {
@@ -4259,7 +4318,6 @@
             } else if (priceType === 'consultation') {
                 basePrice = 0; // Preço de consulta não tem valor numérico
             }
-            
             const totalPrice = basePrice + variationPrice;
             
             // Create variation key for grouping similar items (include notes in key if present)
@@ -4369,7 +4427,6 @@
             updateCartUI();
             showAddedToCartAnimation();
         }
-
         // Update cart UI
         function updateCartUI() {
             const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -4448,11 +4505,12 @@
             cartFab.classList.add('bounce');
             setTimeout(() => cartFab.classList.remove('bounce'), 600);
         }
-
         // Open cart
         async function openCart() {
             // VERIFICAR SE ESTABELECIMENTO ESTÁ ABERTO
-            const isOpen = await isCurrentlyOpen();
+            // Substituído por status do CSV, calculado previamente e aplicado via updateOpenStatusFromCSV
+            const statusText = document.getElementById('status-text');
+            const isOpen = statusText && statusText.textContent.includes('Aberto');
             
             if (!isOpen) {
                 showClosedModal();
@@ -4555,7 +4613,6 @@
             
             modal.classList.remove('hidden');
         }
-
         // Close cart
         function closeCart(event) {
             if (event && event.target !== event.currentTarget) return;
@@ -4640,7 +4697,6 @@
             
             debugLog('✅ Carrinho limpo com sucesso');
         }
-
         // Reset Step 2 - Limpa completamente o estado do step 2
         function resetStep2() {
             debugLog('=== RESET STEP 2 ===');
@@ -4737,7 +4793,6 @@
             // Hide cart FAB during checkout
             document.getElementById('cart-fab').style.display = 'none';
         }
-        
         // Setup payment methods based on configuration
         function setupPaymentMethods() {
             const checkoutConfig = getCheckoutConfig();
@@ -4840,7 +4895,6 @@
                 document.getElementById('cart-fab').style.display = 'flex';
             }
         }
-        
         // Back to cart from checkout
         function backToCart() {
             // Fechar checkout
@@ -5011,7 +5065,6 @@
                 errorLog('syncDeliveryFeeBeforeStep3 error:', e);
             }
         }
-        
         // Enhanced Step 2 validation - validates all required fields
         function validateStep2Enhanced() {
             const deliveryType = document.querySelector('input[name="delivery-type"]:checked')?.value;
@@ -5080,6 +5133,11 @@
                     
                     // Se não há erros, garantir que orderData está atualizado
                     if (!hasErrors) {
+                        // Se bairro manual foi digitado mas taxa ainda não foi buscada, tentar agora
+                        const manualNeighborhood = document.getElementById('manual-neighborhood')?.value?.trim() || '';
+                        if (manualNeighborhood) {
+                            try { performNeighborhoodSearch(manualNeighborhood); } catch (_) {}
+                        }
                         updateManualAddressData();
                     }
                     
@@ -5127,6 +5185,15 @@
                     if (!number) {
                         showFieldError('number', 'Número do endereço é obrigatório');
                         hasErrors = true;
+                    }
+                    
+                    // Se bairro está digitado mas taxa ainda não foi buscada, tentar buscar agora
+                    if (!hasErrors) {
+                        const neighborhoodInput = document.getElementById('neighborhood');
+                        const neighborhoodVal = neighborhoodInput?.value?.trim() || '';
+                        if (neighborhoodVal) {
+                            try { buscarTaxaPorBairroRedundante(neighborhoodVal, true); } catch (_) {}
+                        }
                     }
                     
                     // If no errors, update orderData
@@ -5202,9 +5269,6 @@
         function prevStep(step) {
             showStep(step);
         }
-
-
-
         // Update cart quantity
         function updateCartQuantity(itemKey, delta) {
             const item = cart.find(item => item.itemKey === itemKey);
@@ -5242,7 +5306,6 @@
             lightbox.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
-        
         // Close image lightbox
         function closeLightbox(event) {
             if (event && event.target !== event.currentTarget && !event.target.closest('button')) return;
@@ -5374,7 +5437,6 @@
                 setupPaymentMethods();
                 return;
             }
-            
             // Update payment methods visibility based on delivery type
             setupPaymentMethods();
             
@@ -5417,7 +5479,6 @@
                         continueBtn.disabled = false;
                     }
                     break;
-                    
                 case 'delivery':
                     // Get delivery fee message from configuration
                     const checkoutConfigDelivery = getCheckoutConfig();
@@ -5448,19 +5509,16 @@
                                         Corrigir endereço / Não sei o CEP
                                     </button>
                                 </div>
-                                <select id="cep" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="clearFieldError('cep'); fetchAddress(); updateContinueButton();" onblur="updateContinueButton();">
-                                    <option value="">Selecione...</option>
-                                    <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                </select>
+                                <div id="cep-field-wrapper"></div>
                             </div>
 
                             <!-- Modo Endereço Manual (Oculto inicialmente) -->
                             <div id="manual-address-container" class="hidden space-y-4">
                                 <div class="flex items-center justify-between mb-2">
                                     <label class="block text-sm font-medium text-gray-700">Endereço Manual</label>
-                                    <button type="button" onclick="toggleAddressMode()" class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors duration-200">
-                                        Usar meu CEP
-                                    </button>
+                                    <button type="button" onclick="toggleAddressMode()" class="text-sm text-blue-600 hover:text-blue-800 underline transition-colors duration-200" style="display: ${typeof cepVisible !== 'undefined' && !cepVisible ? 'none' : 'inline-block'};">
+                                         Usar meu CEP
+                                     </button>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Endereço Completo *</label>
@@ -5479,49 +5537,38 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Bairro *</label>
-                                        <select id="manual-neighborhood" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee(); updateContinueButton();">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from neighborhoodsData -->
-                                        </select>
+                                        <div id="manual-bairro-field-wrapper"></div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                                        <select id="manual-city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateManualAddressData(); clearFieldError('manual-city'); updateContinueButton();">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                        </select>
+                                        <div id="manual-city-field-wrapper"></div>
                                     </div>
-                                </div>
-                            </div>
-                            <div id="address-fields" class="hidden space-y-4">
+                                                        </div>
+                        </div>
+                        <div id="address-fields" class="hidden space-y-4">
+                                <!-- Inserido: Número e Complemento também no fluxo por CEP -->
+                                <div class="grid grid-cols-2 gap-3">
+                                     <div>
+                                         <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
+                                         <input type="text" id="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent" placeholder="123" autocomplete="off" oninput="clearFieldError('number')" onchange="updateContinueButton()" onblur="updateContinueButton()">
+                                     </div>
+                                     <div>
+                                         <label class="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
+                                         <input type="text" id="complement" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent" placeholder="Apto 45" autocomplete="off">
+                                     </div>
+                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Endereço *</label>
                                     <input type="text" id="street" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Rua, Avenida..." autocomplete="off" oninput="updateAddressData(); clearFieldError('street');">
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Número *</label>
-                                        <input type="text" id="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="123" autocomplete="off" oninput="clearFieldError('number')" onchange="updateContinueButton()" onblur="updateContinueButton()">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Complemento</label>
-                                        <input type="text" id="complement" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Apto 45" autocomplete="off">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Bairro *</label>
-                                        <select id="neighborhood" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from neighborhoodsData -->
-                                        </select>
+                                        <div id="bairro-field-wrapper"></div>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                                        <select id="city" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" onchange="updateAddressData(); clearFieldError('city');">
-                                            <option value="">Selecione...</option>
-                                            <!-- Options will be populated dynamically by setupAddressSelects() from config.js -->
-                                        </select>
+                                        <div id="city-field-wrapper"></div>
                                     </div>
                                 </div>
                             </div>
@@ -5530,7 +5577,7 @@
                     continueBtn.disabled = true;
                     
                     // Popular selects de CEP, Bairro e Cidade
-                    try { setupAddressSelects(); } catch (e) { console.error('Erro setupAddressSelects', e); }
+                    try { renderDeliveryFieldsControl(); } catch (e) { console.error('Erro renderDeliveryFieldsControl', e); }
                     
                     // Foco automático no campo de CEP após renderização
                     setTimeout(() => {
@@ -5548,7 +5595,6 @@
                     break;
             }
         }
-
         // Handle CEP input - fetch address when 8 digits are entered
         function handleCepInput() {
             const cepEl = document.getElementById('cep');
@@ -5578,7 +5624,6 @@
                 fetchAddress();
             }
         }
-
         // Fetch address from CEP with multiple API fallbacks
         async function fetchAddress() {
             const cepEl = document.getElementById('cep');
@@ -5741,7 +5786,6 @@
                     debugLog(`Endereço encontrado via ${api.name}:`, orderData.address);
                     updateContinueButton();
                     return; // Success, exit function
-                    
                 } catch (error) {
                     errorLog(`Erro na API ${api.name}:`, error);
                     lastError = error;
@@ -5755,7 +5799,6 @@
                     continue;
                 }
             }
-            
             // If we get here, all APIs failed
             errorLog('Todas as APIs de CEP falharam');
             
@@ -5803,6 +5846,102 @@
         }
 
         // Popular selects de CEP, Bairro e Cidade a partir do config.js e da planilha de bairros
+        
+        // ==== CONTROLE DE CAMPOS DELIVERY (inserido)
+        function renderDeliveryFieldsControl() {
+            try {
+                const cepWrapper = document.getElementById('cep-field-wrapper');
+                if (cepWrapper) {
+                    if (typeof cepVisible !== 'undefined' && !cepVisible) {
+                        if (cepWrapper.parentElement) cepWrapper.parentElement.style.display = 'none';
+                    } else {
+                        if (cepWrapper.parentElement) cepWrapper.parentElement.style.display = '';
+                        if (typeof cepSelectEnabled !== 'undefined' && cepSelectEnabled) {
+                            cepWrapper.innerHTML = `<select id=\"cep\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent\" onchange=\"clearFieldError('cep'); fetchAddress(); updateContinueButton();\" onblur=\"updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            cepWrapper.innerHTML = `<input type=\"text\" id=\"cep\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Digite o CEP\" autocomplete=\"off\" oninput=\"handleCepInput(); clearFieldError('cep');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\" inputmode=\"numeric\" maxlength=\"9\">`;
+                        }
+                    }
+                }
+
+                const bairroWrapper = document.getElementById('bairro-field-wrapper');
+                if (bairroWrapper) {
+                    if (typeof bairroVisible !== 'undefined' && !bairroVisible) {
+                        if (bairroWrapper.parentElement && bairroWrapper.parentElement.parentElement) bairroWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (bairroWrapper.parentElement && bairroWrapper.parentElement.parentElement) bairroWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
+                            bairroWrapper.innerHTML = `<select id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            bairroWrapper.innerHTML = `<input type=\"text\" id=\"neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus-ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('neighborhood'); buscarTaxaPorBairroRedundante(this.value, true);\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const cityWrapper = document.getElementById('city-field-wrapper');
+                if (cityWrapper) {
+                    if (typeof cidadeVisible !== 'undefined' && !cidadeVisible) {
+                        if (cityWrapper.parentElement && cityWrapper.parentElement.parentElement) cityWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (cityWrapper.parentElement && cityWrapper.parentElement.parentElement) cityWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof cidadeSelectEnabled !== 'undefined' && cidadeSelectEnabled) {
+                            cityWrapper.innerHTML = `<select id=\"city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateAddressData(); clearFieldError('city');\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            cityWrapper.innerHTML = `<input type=\"text\" id=\"city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Sua cidade\" autocomplete=\"off\" oninput=\"updateAddressData(); clearFieldError('city');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const manualBairroWrapper = document.getElementById('manual-bairro-field-wrapper');
+                if (manualBairroWrapper) {
+                    if (typeof bairroVisible !== 'undefined' && !bairroVisible) {
+                        if (manualBairroWrapper.parentElement && manualBairroWrapper.parentElement.parentElement) manualBairroWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (manualBairroWrapper.parentElement && manualBairroWrapper.parentElement.parentElement) manualBairroWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof bairroSelectEnabled !== 'undefined' && bairroSelectEnabled) {
+                            manualBairroWrapper.innerHTML = `<select id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee(); updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            manualBairroWrapper.innerHTML = `<input type=\"text\" id=\"manual-neighborhood\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Seu bairro\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-neighborhood'); searchNeighborhoodFee();\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                const manualCityWrapper = document.getElementById('manual-city-field-wrapper');
+                if (manualCityWrapper) {
+                    if (typeof cidadeVisible !== 'undefined' && !cidadeVisible) {
+                        if (manualCityWrapper.parentElement && manualCityWrapper.parentElement.parentElement) manualCityWrapper.parentElement.parentElement.style.display = 'none';
+                    } else {
+                        if (manualCityWrapper.parentElement && manualCityWrapper.parentElement.parentElement) manualCityWrapper.parentElement.parentElement.style.display = '';
+                        if (typeof cidadeSelectEnabled !== 'undefined' && cidadeSelectEnabled) {
+                            manualCityWrapper.innerHTML = `<select id=\"manual-city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" onchange=\"updateManualAddressData(); clearFieldError('manual-city'); updateContinueButton();\"><option value=\"\">Selecione...</option></select>`;
+                        } else {
+                            manualCityWrapper.innerHTML = `<input type=\"text\" id=\"manual-city\" class=\"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus-border-transparent\" placeholder=\"Sua cidade\" autocomplete=\"off\" oninput=\"updateManualAddressData(); clearFieldError('manual-city');\" onchange=\"updateContinueButton();\" onblur=\"updateContinueButton();\">`;
+                        }
+                    }
+                }
+
+                try { setupAddressSelects(); } catch (_) {}
+                
+                // Auto alternar para modo manual quando CEP estiver invisível
+                const cepContainer = document.getElementById('cep-mode-container');
+                const manualContainer = document.getElementById('manual-address-container');
+                if (typeof cepVisible !== 'undefined' && !cepVisible) {
+                    if (cepContainer) cepContainer.style.display = 'none';
+                    if (manualContainer) manualContainer.classList.remove('hidden');
+                }
+                
+                // Se o CEP já estiver preenchido em select/input, acionar busca de endereço
+                const cepElInit = document.getElementById('cep');
+                const cepInit = (cepElInit && cepElInit.tagName === 'SELECT' ? cepElInit.value : (cepElInit?.value || '')).toString().replace(/\D/g, '');
+                if (cepElInit && cepInit && cepInit.length === 8) {
+                    try { fetchAddress(); } catch (_) {}
+                }
+            } catch (e) {
+                errorLog('Erro ao renderizar campos delivery:', e);
+            }
+        }
+        // ==== FIM CONTROLE DE CAMPOS DELIVERY ====
+
         function setupAddressSelects() {
             try {
                 const cepsLista = (typeof SELECT_CEPS !== 'undefined' && Array.isArray(SELECT_CEPS)) ? SELECT_CEPS : [];
@@ -5944,7 +6083,6 @@
             
             showOtherOptionsBtn.style.display = 'block';
         }
-
         // Hide "Outras opções" button
         function hideOtherOptionsButton() {
             const showOtherOptionsBtn = document.getElementById('show-other-options');
@@ -5952,7 +6090,6 @@
                 showOtherOptionsBtn.style.display = 'none';
             }
         }
-
         // Toggle delivery options visibility
         function toggleDeliveryOptions() {
             const showOtherOptionsBtn = document.getElementById('show-other-options');
@@ -6145,7 +6282,6 @@
                 field.classList.remove('shake');
             }, 600);
         }
-
         // Clear field error with smooth transition
         function clearFieldError(fieldId) {
             const field = document.getElementById(fieldId);
@@ -6315,7 +6451,6 @@
             } else {
                 deliveryRow.classList.add('hidden');
             }
-            
             // 3. DESCONTO (apenas se houver cupom aplicado)
             if (appliedCoupon && couponDiscount > 0) {
                 discountRow.classList.remove('hidden');
@@ -6505,7 +6640,6 @@
             }
             return false;
         };
-        
         // Funções utilitárias para trabalhar com timezone global
         function getCurrentDateInTimezone() {
             const now = new Date();
@@ -6590,8 +6724,7 @@
         function checkIfOpenAtTime(dayOfWeek, timeInMinutes) {
             return new Promise(async (resolve) => {
                 try {
-                    const response = await fetch(HOURS_CSV_URL);
-                    const csvText = await response.text();
+                    const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                     const lines = csvText.trim().split('\n');
                     
                     // Procurar pelo dia da semana (começando da linha 1, pois linha 0 é cabeçalho)
@@ -6648,8 +6781,7 @@
          */
         async function getNextOpenTime() {
             try {
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 const lines = csvText.trim().split('\n');
                 const currentTime = getCurrentDateInTimezone();
                 const currentDay = currentTime.getDay();
@@ -6663,12 +6795,12 @@
                         const values = lines[i].split(',');
                         const csvDayName = values[0]?.trim();
                         
-                        if (csvDayName.toLowerCase() === dayName.toLowerCase()) {
+                        if (csvDayName && csvDayName.toLowerCase() === dayName.toLowerCase()) {
                             // Pegar primeiro horário do dia
                             const firstStartTime = values[1]?.trim();
                             if (firstStartTime && firstStartTime !== '') {
                                 const dayLabel = dayOffset === 0 ? 'Hoje' : 
-                                               dayOffset === 1 ? 'Amanhã' : dayName;
+                                               dayOffset === 1 ? 'Amanhã' : dayName.charAt(0).toUpperCase() + dayName.slice(1);
                                 return `${dayLabel} às ${firstStartTime}`;
                             }
                             break;
@@ -6682,7 +6814,6 @@
                 return 'Consulte nossos horários';
             }
         }
-        
         function formatDateInTimezone(date, options = {}) {
             try {
                 let formattedDate = date.toLocaleString('pt-BR', {
@@ -6877,7 +7008,6 @@
             
             return finalDiscount;
         }
-        
         // Mostrar feedback do cupom
         function showCouponFeedback(message, type) {
             const feedback = document.getElementById('coupon-feedback');
@@ -7071,7 +7201,6 @@
             
             return message + couponInfo;
         }
-        
         // Handle payment method change
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('payment-method').value;
@@ -7270,7 +7399,6 @@
                 }, 300);
             });
         }
-        
         // Setup listeners para salvar dados do formulário no localStorage
         function setupFormStorageListeners() {
             // Listener para campos de texto
@@ -7465,7 +7593,6 @@
             debugLog(`❌ Taxa não encontrada para o bairro: "${neighborhood}"`);
             return null;
         }
-
         /**
          * Exibe a taxa de delivery na interface ou alerta para consultar
          * @param {number|null} fee - Valor da taxa ou null se não encontrado
@@ -7644,7 +7771,6 @@
                 debugLog('❌ Botão continuar DESABILITADO');
             }
         }
-
         /**
          * Exibe mensagem de erro quando bairro não é atendido
          * @param {string} neighborhood - Nome do bairro
@@ -7798,7 +7924,6 @@
             
             debugLog('Dados do endereço atualizados:', window.orderData.address);
         }
-        
         // Variável para controlar o timeout de busca do bairro no modo CEP
         let cepNeighborhoodSearchTimeout = null;
         
@@ -7847,7 +7972,6 @@
                 updateContinueButtonState(isValid, neighborhood);
             }, 500);
         }
-        
         /**
          * Busca taxa de delivery por bairro no modo CEP
          * @param {string} neighborhood - Nome do bairro a ser pesquisado
@@ -7996,7 +8120,6 @@
                 window.autocompleteEventAdded = true;
             }
         }
-        
         /**
          * Verifica se o valor do input mudou e para o spinner se necessário
          */
@@ -8012,7 +8135,6 @@
                 hideNeighborhoodSpinner();
             }
         }
-        
         /**
          * Função REDUNDANTE para buscar taxa de entrega por bairro
          * Implementa debounce e busca mais precisa por termo completo
@@ -8196,7 +8318,6 @@
                 
                 field.parentNode.appendChild(autocompleteContainer);
             }
-            
             // Gerar HTML das sugestões
             let html = '';
             sugestoes.forEach((bairro, index) => {
@@ -8393,7 +8514,6 @@
             // Remover spinner sempre ao final
             hideNeighborhoodSpinner();
         }
-        
         /**
          * Calcula a similaridade entre duas strings usando algoritmo de Levenshtein
          */
@@ -8767,7 +8887,6 @@
             
             debugLog('DEBUG - Dados endereço manual atualizados:', orderData.address);
         }
-
         /**
          * Busca taxa de delivery por bairro no modo manual (com debounce)
          */
@@ -8956,7 +9075,6 @@
         function showCustomAlert(message, type = 'error') {
             showToast(message, type);
         }
-
         // Format WhatsApp number with country-specific mask
         /**
          * Formata número de telefone para exibição
@@ -9148,7 +9266,6 @@
             phoneInput.placeholder = format;
             phoneInput.value = ''; // Clear current value when country changes
         }
-        
         // Detect country by IP and set default country code
         async function detectCountryByIP() {
             // Lista de APIs que tentaremos, em ordem de prioridade
@@ -9321,7 +9438,6 @@
                     hasErrors = true;
                 }
             }
-            
             // Validate payment method only if payment methods are enabled AND not "Consumo no Local"
             const checkoutConfig = getCheckoutConfig();
             if (checkoutConfig.step3_show_formas_pag === 'Sim' && orderData.deliveryType !== 'local') {
@@ -9477,7 +9593,6 @@
             const currency = getCurrentCurrency();
             return currencyConfig[currency] || currencyConfig['BRL'];
         }
-
         /**
          * Função para escurecer uma cor em 30%
          * @param {string} cor - Cor em formato hexadecimal, RGB ou variável CSS
@@ -9660,7 +9775,6 @@
                 return 0;
             }
         }
-        
         // Detectar tipo de preço
         function getPriceType(priceField) {
             // Converter para string e validar
@@ -9822,7 +9936,6 @@
                 return '<span style="color: var(--cor-secundaria); font-weight: bold;">💬 Consulte</span>';
             }
         }
-
         // Send to WhatsApp or Webhook
         function sendToWhatsApp() {
             if (cart.length === 0) return;
@@ -10022,7 +10135,6 @@
                 const itemPrice = parseFloat(item.preco);
                 return isNaN(itemPrice) || itemPrice <= 0;
             });
-            
             const hasPricedItems = cart.some(item => {
                 const itemPrice = parseFloat(item.preco);
                 return !isNaN(itemPrice) && itemPrice > 0;
@@ -10223,7 +10335,6 @@
                     couponDiscount = calculateCouponDiscount(coupon) || 0;
                 } catch (_) { /* noop */ }
             }
-            
             // Calculate totals
             let subtotal = cart.reduce((sum, item) => {
                 const price = (typeof parsePrice === 'function') ? parsePrice(item.preco) : parseFloat(String(item.preco).replace(/[^0-9.,]/g, '').replace(',', '.'));
@@ -10419,7 +10530,6 @@
             debugLog('cart após reset:', cart);
             debugLog('currentDeliveryFee após reset:', currentDeliveryFee);
         }
-        
         // Send via Webhook
         function sendViaWebhook(message, webhookUrl) {
             debugLog('=== DEBUG WEBHOOK ===');
@@ -10598,10 +10708,8 @@
                 }
             });
             debugLog('================================');
-            
             // Show loading message
             showCustomAlert('Enviando pedido...', 'info');
-            
             // Baseado na resposta do servidor, vamos usar diretamente o método GET
             // já que o servidor está configurado apenas para aceitar requisições GET
             
@@ -10794,7 +10902,6 @@
                 retryScroll();
             }, 100); // Initial delay to ensure DOM rendering
         }
-
         // SCROLL SPY DEFINITIVO - Técnica tradicional e confiável
         let scrollSpyEnabled = true;
         let scrollSpyTimeout = null;
@@ -10982,7 +11089,6 @@
             
             if (typeof debugLog === 'function') debugLog('✅ Search functionality initialized');
         }
-        
         // Perform search
         function performSearch() {
             const searchInput = document.getElementById('search');
@@ -11184,7 +11290,6 @@
                 }, 500);
             });
         }
-
         // Share specific category
         function shareCategory(category) {
             // Get category display name from dynamic data
@@ -11325,11 +11430,20 @@
         });
 
         // Operating Hours Functions
+        function updateOpenStatusFromCSV(isOpen) {
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
+            if (!statusText || !statusDot) return;
+            statusText.textContent = isOpen ? 'Aberto' : 'Fechado';
+            statusText.className = 'font-medium';
+            statusText.style.color = isOpen ? 'var(--cor-sucesso)' : 'var(--cor-erro)';
+            statusDot.className = 'w-2 h-2 rounded-full';
+            statusDot.style.backgroundColor = isOpen ? 'var(--cor-sucesso)' : 'var(--cor-erro)';
+        }
         async function updateOperatingHours() {
             try {
-                // Fetch CSV data directly for real-time updates
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                // Fetch CSV data via cache for stability
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 
                 // Parse CSV manually
                 const lines = csvText.trim().split('\n');
@@ -11382,7 +11496,7 @@
                 debugLog('- Status:', isOpen ? 'ABERTO' : 'FECHADO');
                 debugLog('- Próximo fechamento:', nextCloseTime || 'N/A');
                 
-                // Update status indicator
+                // Atualizar indicador de status com base no horário atual e planilha de horários
                 const statusText = document.getElementById('status-text');
                 const hoursText = document.getElementById('hours-text');
                 const statusDot = document.getElementById('status-dot');
@@ -11500,7 +11614,6 @@
             }
             return false;
         }
-
         function getNextCloseTime(schedule, currentTime) {
             // Get time periods - new format with Período 1, 2, 3
             const periods = [
@@ -11644,9 +11757,8 @@
             document.body.style.overflow = 'hidden';
             
             try {
-                // Fetch CSV data directly
-                const response = await fetch(HOURS_CSV_URL);
-                const csvText = await response.text();
+                // Fetch CSV data via cache
+                const csvText = await loadCSVTextWithCache(HOURS_CSV_URL, CSV_CACHE_TTL_MS);
                 
                 debugLog('CSV loaded successfully:', csvText.substring(0, 200));
                 
@@ -11688,10 +11800,8 @@
                         debugLog('📋 Dados começam na linha 1 (sem cabeçalho)');
                     }
                 }
-                
                 const headers = headerLineIndex >= 0 ? lines[headerLineIndex].split(',') : [];
                 debugLog('📋 Cabeçalhos:', headers);
-                
                 let html = '';
                 
                 // Process each day (starting from dataStartIndex)
@@ -11861,26 +11971,7 @@
         /**
          * Verificação contínua do horário de funcionamento
          */
-        async function checkOperatingHoursStatus() {
-            try {
-                const isOpen = await isCurrentlyOpen();
-                
-                if (!isOpen && isCheckoutOpen()) {
-                    debugLog('⚠️ Estabelecimento fechou durante uso - fechando checkout');
-                    closeCheckoutIfOpen();
-                    showClosedModal();
-                }
-            } catch (e) {
-                errorLog('Erro na verificação contínua de horário:', e);
-            }
-        }
-        
-        // Iniciar verificação contínua a cada minuto
-        setInterval(checkOperatingHoursStatus, 60000);
-        
-        /**
-         * Atualiza o indicador visual de status (aberto/fechado)
-         */
+        /* Removido: função de atualização baseada no horário local
         async function updateOpenStatusIndicator() {
             try {
                 const statusDot = document.getElementById('status-dot');
@@ -11913,20 +12004,18 @@
                     statusText.textContent = '⚠️ Verificando...';
                     statusText.style.color = '#F59E0B';
                 }
-            }
+                        }
         }
+        */
         
-        // Atualizar status a cada minuto
-        setInterval(updateOpenStatusIndicator, 60000);
-        
-        // Atualizar status na inicialização (após carregar config)
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(updateOpenStatusIndicator, 2000); // Aguardar 2s para config carregar
-        });
-
-        // Update hours every minute
+        // Atualiza status/hours a cada minuto com base nos horários da planilha
         setInterval(updateOperatingHours, 60000);
-
+        
+        // Atualiza logo na inicialização após DOM pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(updateOperatingHours, 800);
+        });
+        
         // ===== FUNÇÕES RELÓGIO TIMEZONE =====
         
         let timezoneClockInterval = null;
@@ -12037,7 +12126,6 @@
                 downloadButton.onmouseout = null;
             }
         }
-        
         /**
          * Abre o modal do QR Code e gera o código (versão simplificada)
          */
@@ -12190,7 +12278,6 @@
                 }, 2000);
             }
         }
-        
         /**
          * Faz download do QR Code (versão simplificada)
          */
@@ -12378,7 +12465,6 @@
                 }
             }, 3500);
         }
-
         // ===== AUTOMAÇÃO MESA URL - CHECKOUT DIRETO =====
         function autoMesaCheckout() {
             const mesaURL = getMesaFromURL();
@@ -12556,7 +12642,6 @@
             const notification = document.getElementById('notification');
             notification.classList.remove('show');
         }
-        
         // Função para verificar limites de seleção
         function checkSelectionLimit(input, variationData) {
             if (!variationData || variationData.type !== 'checkbox') {
@@ -12720,7 +12805,6 @@
  * 
  * Desenvolvido por Dante Testa - dantetesta.com.br
  */
-
 (function() {
     'use strict';
     
@@ -12914,9 +12998,7 @@
         }
         return success;
     };
-    
     // ===== FUNÇÕES ESPECÍFICAS DE CUPONS =====
-    
     /**
      * Salvar cupom no localStorage
      */
@@ -13115,9 +13197,7 @@
         }
         return null;
     };
-    
     // ===== FUNÇÕES DE LIMPEZA GERAL =====
-    
     /**
      * Limpar todos os dados do sistema localStorage
      */
@@ -13315,7 +13395,6 @@ if (typeof TRADUCAO !== 'undefined' && TRADUCAO === true) {
         wrapper.style.display = 'none';
     }
 }
-
 // ====================================================================
 // POSICIONAMENTO DINÂMICO DO BOTÃO DE COMPARTILHAMENTO
 // ====================================================================
